@@ -29,7 +29,7 @@
 
 <element> ::= <atom> | <pair> | Nil | T
 
-<empty> ::=    (* пусто *)
+<empty> ::= 
 
 <list> ::= '(' <empty> | <elements> { <elements> } ')'
 
@@ -42,5 +42,23 @@
 <function> ::= <atom>
 
 <arguments> ::= <expr> { <expr> }
+
+
+<cond> ::= '(' 'COND' <clause> { <clause> } ')'
+
+<clause> ::= '(' <expr> <expr> ')'
+
+
+<number_operation> ::= "+" | "-" | "*" | "/" | "%" | "^"
+<compare_operator> ::= "=" | "<" | ">" | ">=" | "=<" | "<>"
+
+<defun> ::= '(' 'DEFUN' <function_name> <param_list> <expr> ')'
+
+<function_name> ::= <atom>
+
+<param_list> ::= '(' <parameters> ')'
+
+<parameters> ::= <empty> | <atom> { <atom> }
+
 
 ```
