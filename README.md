@@ -10,8 +10,6 @@
 
 <integer> ::= [ '-' ] <digit> { <digit> }
 
-<float> ::= [ '-' ] <digit> { <digit> } '.' <digit> { <digit> }
-
 <string> ::= '"' { <string_char> } '"'
 
 <string_char> ::= <any_char_except_quote> | '""'  
