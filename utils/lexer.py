@@ -1,4 +1,3 @@
-
 class Lexer:
 
     def __init__(self, text):
@@ -6,12 +5,12 @@ class Lexer:
         self.pos = 0
 
     def current_char(self):
-        if (self.pos >= len(self.text)):
+        if self.pos >= len(self.text):
             return None
         return self.text[self.pos]
 
     def next_char(self):
-        if ((self.pos + 1) >= len(self.text)):
+        if (self.pos + 1) >= len(self.text):
             return None
         return self.text[self.pos + 1]
 
@@ -19,34 +18,34 @@ class Lexer:
         self.pos += 1
 
     def skip_whitespace(self):
-        while ((self.current_char() is not None) and (self.current_char().isspace())):
+        while (self.current_char() is not None) and (self.current_char().isspace()):
             self.advance()
 
     def read_integer(self):
         number = ""
 
-        while ((self.current_char() is not None) and (self.current_char().isdigit())):
+        while (self.current_char() is not None) and (self.current_char().isdigit()):
             number += self.current_char()
             self.advance()
 
         return int(number)
 
     def read_string(self):
-        stroka = ""
+        stroke = ""
 
         self.advance()
 
         while self.current_char() is not None:
             if self.current_char() == '"':
-                if (self.next_char() is not None and self.next_char() == '"'):
-                    stroka += '"'
+                if self.next_char() is not None and self.next_char() == '"':
+                    stroke += '"'
                     self.advance()
                     self.advance()
                     continue
                 else:
                     self.advance()
-                    return stroka
-            stroka += self.current_char()
+                    return stroke
+            stroke += self.current_char()
             self.advance()
 
         raise Exception("Unterminated string")
@@ -58,7 +57,7 @@ class Lexer:
 
             char = self.current_char()
 
-            if (self.is_identifier_char(char)):
+            if self.is_identifier_char(char):
                 result += char
                 self.advance()
             else:
@@ -67,8 +66,7 @@ class Lexer:
         return result
 
     def is_identifier_char(self, char):
-        return (not char.isspace() and char not in '()"')
-
+        return not char.isspace() and char not in '()"'
 
     def tokenize(self):
         tokens = []
@@ -78,7 +76,6 @@ class Lexer:
             if self.current_char().isspace():
                 self.skip_whitespace()
                 continue
-
 
             if self.current_char().isdigit():
                 number = self.read_integer()
@@ -109,12 +106,12 @@ class Lexer:
 
         return tokens
 
+
 class Parser:
 
     def __init__(self, tokens):
         self.tokens = tokens
         self.pos = 0
-
 
     def current(self):
         if self.pos >= len(self.tokens):
@@ -140,8 +137,6 @@ class Parser:
 
         return token
 
-
-
     def parse(self):
 
         expressions = []
@@ -150,7 +145,6 @@ class Parser:
             expressions.append(self.parse_expr())
 
         return expressions
-
 
     def parse_expr(self):
 
@@ -165,8 +159,6 @@ class Parser:
             return self.parse_list()
 
         return self.parse_atom()
-
-
 
     def parse_atom(self):
 
@@ -194,7 +186,6 @@ class Parser:
 
         raise Exception(f"Unexpected token: {token}")
 
-
     def parse_list(self):
 
         elements = []
@@ -216,4 +207,3 @@ class Parser:
         self.expect('RPAREN')
 
         return elements
-

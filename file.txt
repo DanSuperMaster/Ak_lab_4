@@ -1,2 +1,0 @@
-(setq x 10)
-(setq x (if (= 1 x) 2 3))
