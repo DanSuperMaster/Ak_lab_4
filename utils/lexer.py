@@ -97,6 +97,14 @@ class Lexer:
                 self.advance()
                 continue
 
+            if (self.current_char() == '-'
+                    and self.next_char() is not None
+                    and self.next_char().isdigit()):
+                self.advance()
+                number = self.read_integer()
+                tokens.append(("INTEGER", -number))
+                continue
+
             if self.is_identifier_char(self.current_char()):
                 ident = self.read_identifier()
                 tokens.append(("IDENTIFIER", ident))

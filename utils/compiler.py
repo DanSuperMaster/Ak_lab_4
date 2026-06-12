@@ -164,7 +164,7 @@ class Compiler:
                 self._compile_print_str(arg)
             else:
                 self.compile_expr(arg)
-                self.emit(Opcode.OUT)
+                self.emit(Opcode.PRINT_INT)
             return
 
         if op == 'READ':
