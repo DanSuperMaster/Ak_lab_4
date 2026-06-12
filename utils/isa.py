@@ -1,8 +1,6 @@
 import struct
 from enum import IntEnum
-
-IN_PORT = 0xFFFFFE
-OUT_PORT = 0xFFFFFF
+from common import IN_PORT, OUT_PORT, Opcode
 
 WORD_SIZE = 32
 INSTRUCTION_SIZE = 4
@@ -10,36 +8,7 @@ ARG_MASK = 0x00FFFFFF
 ARG_SIGN_BIT = 0x800000
 
 
-class Opcode(IntEnum):
-    PUSH = 0x01
-    LOAD = 0x02
-    STORE = 0x03
 
-    ADD = 0x10
-    SUB = 0x11
-    MUL = 0x12
-    DIV = 0x13
-    MOD = 0x14
-
-    EQ = 0x20
-    LT = 0x21
-    GT = 0x22
-
-    JMP = 0x30
-    JZ = 0x31
-    CALL = 0x32
-    RET = 0x33
-
-    IN = 0x40
-    OUT = 0x41
-
-    DUP = 0x50
-    POP = 0x51
-    SWAP = 0x52
-
-    PRINT_STR = 0x60
-
-    HALT = 0xFF
 
 
 OPCODE_NAMES: dict[int, str] = {op.value: op.name for op in Opcode}

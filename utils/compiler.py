@@ -156,7 +156,6 @@ class Compiler:
             self.compile_expr(value)
             self.alloc_var(name)
             self.emit_store_var(name)
-            self.emit_load_var(name)
             return
 
         if op == 'PRINT':
