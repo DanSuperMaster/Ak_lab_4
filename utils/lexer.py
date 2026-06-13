@@ -187,7 +187,7 @@ class Parser:
             return float(value)
 
         if token_type == 'STRING':
-            return value
+            return ['__string__', value]
 
         if token_type == 'IDENTIFIER':
             return value

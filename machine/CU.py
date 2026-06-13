@@ -188,6 +188,16 @@ class ControlUnit:
             dp.return_stack.push(dp.pc)
             self._log_msg("EXEC", f"{mn}: RS push PC = {dp.pc}")
 
+        elif mu == MicroOp.RS_PUSH_FROM_DS:
+            val = dp.data_stack.pop()
+            dp.return_stack.push(val)
+            self._log_msg("EXEC", f"{mn}: RS push <- DS pop = {val}")
+
+        elif mu == MicroOp.DS_PUSH_FROM_RS:
+            val = dp.return_stack.pop()
+            dp.data_stack.push(val)
+            self._log_msg("EXEC", f"{mn}: DS push <- RS pop = {val}")
+
         elif mu == MicroOp.DS_PUSH_FROM_PORT_IN:
             v = dp.mem_read(IN_PORT)
             dp.data_stack.push(v)

@@ -40,6 +40,8 @@ class MicroOp(IntEnum):
     PC_LATCH_RS_POP = auto()
     PC_JZ_IR_ARG = auto()
     RS_PUSH_PC = auto()
+    RS_PUSH_FROM_DS = auto()
+    DS_PUSH_FROM_RS = auto()
     DS_PUSH_FROM_PORT_IN = auto()
     PORT_OUT_FROM_DS = auto()
     PORT_OUT_INT_FROM_DS = auto()
@@ -70,6 +72,8 @@ class Opcode(IntEnum):
     JZ = 0x31
     CALL = 0x32
     RET = 0x33
+    RS_PUSH = 0x34
+    RS_POP = 0x35
 
     IN = 0x40
     OUT = 0x41
@@ -111,6 +115,9 @@ MC = {
                   MicroOp.PC_LATCH_IR_ARG],
 
     Opcode.RET: [MicroOp.PC_LATCH_RS_POP],
+
+    Opcode.RS_PUSH: [MicroOp.RS_PUSH_FROM_DS],
+    Opcode.RS_POP:  [MicroOp.DS_PUSH_FROM_RS],
 
     Opcode.IN: [MicroOp.AR_LATCH_IN_PORT,
                 MicroOp.DS_PUSH_FROM_PORT_IN],

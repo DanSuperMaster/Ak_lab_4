@@ -160,8 +160,8 @@ class Compiler:
 
         if op == 'PRINT':
             arg = expr[1]
-            if isinstance(arg, str) and arg not in ('T', 'NIL') and arg not in self.variables:
-                self._compile_print_str(arg)
+            if isinstance(arg, list) and len(arg) == 2 and arg[0] == '__string__':
+                self._compile_print_str(arg[1])
             else:
                 self.compile_expr(arg)
                 self.emit(Opcode.PRINT_INT)
@@ -247,7 +247,6 @@ class Compiler:
         if op == 'DEFUN':
             raise Exception("DEFUN is only allowed at the top level")
 
-
         for arg in expr[1:]:
             self.compile_expr(arg)
 
@@ -262,6 +261,20 @@ class Compiler:
         pos = self.emit(Opcode.PRINT_STR, self._data_arg(offset))
         self._pending.append(("__data__", pos))
 
+    def _collect_locals(self, expr, params, found):
+        if not isinstance(expr, list) or len(expr) == 0:
+            return
+        op = str(expr[0]).upper()
+        if op == 'SETQ':
+            name = expr[1]
+            if name not in self.variables and name not in params and name not in found:
+                found.append(name)
+            self._collect_locals(expr[2], params, found)
+        elif op == 'DEFUN':
+            return
+        else:
+            for sub in expr[1:]:
+                self._collect_locals(sub, params, found)
 
     def _compile_defun(self, expr):
         name = str(expr[1]).upper()
@@ -274,17 +287,40 @@ class Compiler:
         func_addr = len(self.code)
         self.functions[name] = func_addr
 
+        # пролог: сохраняем параметры
         for param in reversed(params):
             self.alloc_var(param)
+            self.emit_load_var(param)
+            self.emit(Opcode.RS_PUSH)
             self.emit_store_var(param)
+
+        # пролог: собираем и сохраняем локальные переменные
+        locals_ = []
+        self._collect_locals(body, params, locals_)
+        for local in locals_:
+            self.alloc_var(local)
+            self.emit_load_var(local)
+            self.emit(Opcode.RS_PUSH)
 
         self.compile_expr(body)
 
+        # эпилог: восстанавливаем локальные (обратный порядок)
+        for local in reversed(locals_):
+            self.emit(Opcode.RS_POP)
+            self.emit_store_var(local)
+
+        # эпилог: восстанавливаем параметры
+        for param in params:
+            self.emit(Opcode.RS_POP)
+            self.emit_store_var(param)
+
         self.emit(Opcode.RET)
+
+        for local in locals_:
+            del self.variables[local]
 
         after_func = len(self.code)
         self.code[jmp_over] = (Opcode.JMP, after_func)
-
 
     def finalize(self):
         n_instr = len(self.code)
@@ -311,7 +347,6 @@ class Compiler:
                 )
 
         return self.code, self.data_section
-
 
 
 def main():
