@@ -153,8 +153,8 @@ class Compiler:
         if op == 'SETQ':
             name = expr[1]
             value = expr[2]
-            self.compile_expr(value)
             self.alloc_var(name)
+            self.compile_expr(value)
             self.emit_store_var(name)
             return
 
