@@ -203,6 +203,13 @@ class ControlUnit:
                           + (f" ({chr(v & 0xFF)!r})" if 0 <= v < 0x110000 and chr(v & 0xFF).isprintable() else ""))
             mem_used = True
 
+        elif mu == MicroOp.PORT_OUT_INT_FROM_DS:
+            v = dp.data_stack.pop()
+            for ch in str(v):
+                dp.mem_write(OUT_PORT, ord(ch))
+            self._log_msg("IO", f"{mn}: PRINT_INT <- {v}")
+            mem_used = True
+
         elif mu == MicroOp.HALT:
             dp.halted = True
             self._log_msg("EXEC", f"{mn}: HALT — процессор остановлен", with_state=False)

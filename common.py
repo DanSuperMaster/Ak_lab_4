@@ -42,6 +42,7 @@ class MicroOp(IntEnum):
     RS_PUSH_PC = auto()
     DS_PUSH_FROM_PORT_IN = auto()
     PORT_OUT_FROM_DS = auto()
+    PORT_OUT_INT_FROM_DS = auto()
     HALT = auto()
 
 
@@ -78,6 +79,7 @@ class Opcode(IntEnum):
     SWAP = 0x52
 
     PRINT_STR = 0x60
+    PRINT_INT = 0x61
 
     HALT = 0xFF
 
@@ -121,6 +123,7 @@ MC = {
     Opcode.SWAP: [MicroOp.DS_SWAP],
 
     Opcode.PRINT_STR: [MicroOp.A_LATCH_IR_ARG],
+    Opcode.PRINT_INT: [MicroOp.PORT_OUT_INT_FROM_DS],
 
     Opcode.HALT: [MicroOp.HALT],
 }
