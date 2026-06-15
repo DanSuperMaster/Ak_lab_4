@@ -1,21 +1,38 @@
-from machine.Instruct import Instruction
-from machine.datapath import DataPath
-from common import MicroOp, MAX_TICKS, StopSignal, MC
-from utils.isa import decode_instruction, OPCODE_NAMES, Opcode, OUT_PORT, IN_PORT
-from typing import Optional
 import struct
+from typing import Optional
+
+from machine.datapath import DataPath
+from common import (
+    MAX_TICKS, StopSignal, MicroOp,
+    ROM, OPCODE_TO_UADDR, decode_u,
+    Cond, ArSel, DsOp, RsOp, RegOp, PcOp, AluOp,
+)
+from utils.isa import decode_instruction, OPCODE_NAMES
+
+
+_ALU_TO_MICROOP = {
+    AluOp.ADD: MicroOp.ALU_ADD,
+    AluOp.SUB: MicroOp.ALU_SUB,
+    AluOp.MUL: MicroOp.ALU_MUL,
+    AluOp.DIV: MicroOp.ALU_DIV,
+    AluOp.MOD: MicroOp.ALU_MOD,
+    AluOp.EQ: MicroOp.ALU_EQ,
+    AluOp.LT: MicroOp.ALU_LT,
+    AluOp.GT: MicroOp.ALU_GT,
+}
 
 
 class ControlUnit:
     def __init__(self, datapath: DataPath, *, log: bool = True,
                  max_print_str: int = 4096) -> None:
         self.dp = datapath
-        self.rom = MC
+        self.upc = 0
         self.tick = 0
         self.instr_count = 0
         self._log = log
         self.journal: list[str] = []
         self.max_print_str = max_print_str
+        self.stop_reason: str | None = None
 
     def _log_msg(self, stage: str, detail: str, with_state: bool = True) -> None:
         if not self._log:
@@ -24,7 +41,7 @@ class ControlUnit:
             ds = self.dp.data_stack.snapshot(4)
             rs = self.dp.return_stack.snapshot(2)
             line = (
-                f"tick={self.tick:6d} | PC={self.dp.pc:04d} "
+                f"tick={self.tick:6d} | uPC={self.upc:02d} PC={self.dp.pc:04d} "
                 f"AR={self.dp.ar:04x} A={self.dp.a:04x} B={self.dp.b:04x} "
                 f"C={self.dp.alu.c} "
                 f"DS={ds} RS={rs} | {stage:7s} | {detail}"
@@ -33,276 +50,142 @@ class ControlUnit:
             line = f"tick={self.tick:6d} | {stage:7s} | {detail}"
         self.journal.append(line)
 
-    def _fetch(self) -> Optional[Instruction]:
-        if self.dp.halted:
-            return None
-        self.tick += 1
-        pc = self.dp.pc
-        if pc < 0 or pc >= len(self.dp.memory):
+    def _do_fetch(self) -> None:
+        dp = self.dp
+        pc = dp.pc
+        if pc < 0 or pc >= len(dp.memory):
             raise IndexError(f"PC={pc} за пределами памяти")
-        self.dp.ar = pc
-        raw_word = self.dp.memory[pc]
-
-        raw_bytes = struct.pack(">I", raw_word & 0xFFFFFFFF)
-        opcode, arg = decode_instruction(raw_bytes)
+        dp.ar = pc
+        raw = dp.memory[pc]
+        opcode, arg = decode_instruction(struct.pack(">I", raw & 0xFFFFFFFF))
+        dp.ir_opcode = opcode
+        dp.ir_arg = arg
+        dp.pc = pc + 1
+        self.instr_count += 1
         mn = OPCODE_NAMES.get(opcode, f"0x{opcode:02X}")
         self._log_msg("FETCH", f"{mn}({arg}) @ {pc}")
-        self.dp.pc = pc + 1
-        return Instruction(pc=pc, opcode=opcode, arg=arg)
 
-
-
-    def _decode(self, st: Instruction) -> Instruction:
-        st.micro_ops = list(self.rom.get(st.opcode, []))
-        st.state = {}
-        mn = OPCODE_NAMES.get(st.opcode, f"0x{st.opcode:02X}")
-        self._log_msg("DECODE", f"{mn} -> {len(st.micro_ops)} мк-оп")
-        return st
-
-
-
-    def _execute(self, st: Instruction) -> None:
-        if st.opcode == Opcode.PRINT_STR:
-            while True:
-                self.tick += 1
-                done, _ = self._exec_print_str(st)
-                if done:
-                    return
-                if self.tick >= MAX_TICKS:
-                    return
-            return
-
-        for mu in st.micro_ops:
-            self.tick += 1
-            self._dispatch_microop(mu, st)
-            if self.tick >= MAX_TICKS:
-                return
-
-
-    def _dispatch_microop(self, mu: MicroOp, st: Instruction) -> bool:
-
+    def _exec_word(self, m: dict) -> int:
         dp = self.dp
-        mn = OPCODE_NAMES.get(st.opcode, f"0x{st.opcode:02X}")
+        upc = self.upc
+        mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
 
-        mem_used = False
+        if m["fetch"]:
+            self._do_fetch()
+            mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
 
-        if mu == MicroOp.AR_LATCH_PC:
+        ar_sel = m["ar_sel"]
+        if ar_sel == ArSel.PC:
             dp.ar = dp.pc
-            self._log_msg("EXEC", f"{mn}: AR <- PC ({dp.pc})")
-        elif mu == MicroOp.AR_LATCH_IR_ARG:
-            dp.ar = st.arg
-            self._log_msg("EXEC", f"{mn}: AR <- IR.arg ({st.arg})")
-        elif mu == MicroOp.AR_LATCH_A:
+        elif ar_sel == ArSel.ARG:
+            dp.ar = dp.ir_arg
+        elif ar_sel == ArSel.A:
             dp.ar = dp.a
-            self._log_msg("EXEC", f"{mn}: AR <- A ({dp.a})")
-        elif mu == MicroOp.AR_LATCH_B:
+        elif ar_sel == ArSel.B:
             dp.ar = dp.b
-            self._log_msg("EXEC", f"{mn}: AR <- B ({dp.b})")
-        elif mu == MicroOp.AR_LATCH_IN_PORT:
-            dp.ar = IN_PORT
-            self._log_msg("EXEC", f"{mn}: AR <- IN_PORT")
-        elif mu == MicroOp.AR_LATCH_OUT_PORT:
-            dp.ar = OUT_PORT
-            self._log_msg("EXEC", f"{mn}: AR <- OUT_PORT")
+        elif ar_sel == ArSel.DS:
+            dp.ar = dp.data_stack.peek()
 
-        # ---- работа с MEMORY и IR ----
-        elif mu == MicroOp.IR_FROM_MEM_PC:
-            # Обычно FETCH у нас делается одним «толстым» тактом в _fetch,
-            # но эта микрооперация оставлена на случай, если кто-то захочет
-            # развести FETCH на 2 такта.
-            raw = dp.mem_read(dp.ar)
-            st.opcode, st.arg = decode_instruction(struct.pack(">I", raw & 0xFFFFFFFF))
-            self._log_msg("EXEC", f"IR <- MEM[AR={dp.ar}]")
-            mem_used = True
-
-        elif mu == MicroOp.DS_PUSH_FROM_MEM:
-            val = dp.mem_read(dp.ar)
-            dp.data_stack.push(val)
-            self._log_msg("EXEC", f"{mn}: DS push <- MEM[{dp.ar}] = {val}")
-            mem_used = True
-
-        elif mu == MicroOp.MEM_FROM_DS:
-            val = dp.data_stack.pop()
-            dp.mem_write(dp.ar, val)
-            self._log_msg("EXEC", f"{mn}: MEM[{dp.ar}] <- pop DS = {val}")
-            mem_used = True
-
-        elif mu == MicroOp.A_LATCH_IR_ARG:
-            dp.a = st.arg
-            self._log_msg("EXEC", f"{mn}: A <- IR.arg ({st.arg})")
-        elif mu == MicroOp.A_INC:
+        reg_op = m["reg_op"]
+        if reg_op == RegOp.A_ARG:
+            dp.a = dp.ir_arg
+        elif reg_op == RegOp.A_INC:
             dp.a += 1
-            self._log_msg("EXEC", f"{mn}: A <- A+1 = {dp.a}")
-        elif mu == MicroOp.B_LATCH_IR_ARG:
-            dp.b = st.arg
-            self._log_msg("EXEC", f"{mn}: B <- IR.arg ({st.arg})")
-        elif mu == MicroOp.B_INC:
+        elif reg_op == RegOp.B_ARG:
+            dp.b = dp.ir_arg
+        elif reg_op == RegOp.B_INC:
             dp.b += 1
-            self._log_msg("EXEC", f"{mn}: B <- B+1 = {dp.b}")
 
-        elif mu == MicroOp.DS_PUSH_IR_ARG:
-            dp.data_stack.push(st.arg)
-            self._log_msg("EXEC", f"{mn}: DS push IR.arg = {st.arg}")
-        elif mu == MicroOp.DS_DUP:
+        ds_op = m["ds_op"]
+        if ds_op == DsOp.PUSH_MEM:
+            dp.data_stack.push(dp.mem_read(dp.ar))
+        elif ds_op == DsOp.POP_MEM:
+            dp.mem_write(dp.ar, dp.data_stack.pop())
+        elif ds_op == DsOp.PUSH_ARG:
+            dp.data_stack.push(dp.ir_arg)
+        elif ds_op == DsOp.DUP:
             dp.data_stack.push(dp.data_stack.peek())
-            self._log_msg("EXEC", f"{mn}: DUP")
-        elif mu == MicroOp.DS_POP:
+        elif ds_op == DsOp.POP:
             dp.data_stack.pop()
-            self._log_msg("EXEC", f"{mn}: POP")
-        elif mu == MicroOp.DS_SWAP:
+        elif ds_op == DsOp.SWAP:
             x = dp.data_stack.pop()
             y = dp.data_stack.pop()
-            dp.data_stack.push(x);
+            dp.data_stack.push(x)
             dp.data_stack.push(y)
-            self._log_msg("EXEC", f"{mn}: SWAP")
+        elif ds_op == DsOp.PUSH_RS:
+            dp.data_stack.push(dp.return_stack.pop())
 
-        elif mu in (MicroOp.ALU_ADD, MicroOp.ALU_SUB, MicroOp.ALU_MUL,
-                    MicroOp.ALU_DIV, MicroOp.ALU_MOD,
-                    MicroOp.ALU_EQ, MicroOp.ALU_LT, MicroOp.ALU_GT):
+        alu_op = m["alu_op"]
+        if alu_op == AluOp.TEST_ZERO:
+            v = dp.data_stack.pop()
+            dp.alu.test_zero(v)
+        elif alu_op != AluOp.NONE:
             right = dp.data_stack.pop()
             left = dp.data_stack.pop()
-            r = dp.alu.binop(mu, left, right)
+            r = dp.alu.binop(_ALU_TO_MICROOP[alu_op], left, right)
             dp.data_stack.push(r)
-            self._log_msg("EXEC", f"{mn}: ALU {mu.name} ({left}, {right}) -> {r}, C={dp.alu.c}")
 
-        elif mu == MicroOp.ALU_TEST_ZERO:
-            v = dp.data_stack.pop()
-            dp.alu.test_zero(v)
-            self._log_msg("EXEC", f"{mn}: TEST_ZERO({v}) -> C={dp.alu.c}")
-
-        elif mu == MicroOp.PC_LATCH_IR_ARG:
-            dp.pc = st.arg
-            self._log_msg("EXEC", f"{mn}: PC <- IR.arg ({st.arg})")
-        elif mu == MicroOp.PC_LATCH_RS_POP:
-            ret = dp.return_stack.pop()
-            dp.pc = ret
-            self._log_msg("EXEC", f"{mn}: PC <- RS.pop = {ret}")
-        elif mu == MicroOp.PC_JZ_IR_ARG:
-            if dp.alu.c == 1:
-                dp.pc = st.arg
-                self._log_msg("EXEC", f"{mn}: C=1, PC <- IR.arg ({st.arg})")
-            else:
-                self._log_msg("EXEC", f"{mn}: C=0, переход не выполнен")
-
-        elif mu == MicroOp.RS_PUSH_PC:
+        rs_op = m["rs_op"]
+        if rs_op == RsOp.PUSH_PC:
             dp.return_stack.push(dp.pc)
-            self._log_msg("EXEC", f"{mn}: RS push PC = {dp.pc}")
+        elif rs_op == RsOp.PUSH_DS:
+            dp.return_stack.push(dp.data_stack.pop())
 
-        elif mu == MicroOp.RS_PUSH_FROM_DS:
-            val = dp.data_stack.pop()
-            dp.return_stack.push(val)
-            self._log_msg("EXEC", f"{mn}: RS push <- DS pop = {val}")
+        pc_op = m["pc_op"]
+        if pc_op == PcOp.ARG:
+            dp.pc = dp.ir_arg
+        elif pc_op == PcOp.RS:
+            dp.pc = dp.return_stack.pop()
+        elif pc_op == PcOp.ARG_IF_C:
+            if dp.alu.c == 1:
+                dp.pc = dp.ir_arg
 
-        elif mu == MicroOp.DS_PUSH_FROM_RS:
-            val = dp.return_stack.pop()
-            dp.data_stack.push(val)
-            self._log_msg("EXEC", f"{mn}: DS push <- RS pop = {val}")
-
-        elif mu == MicroOp.DS_PUSH_FROM_PORT_IN:
-            v = dp.mem_read(IN_PORT)
-            dp.data_stack.push(v)
-            self._log_msg("IO",
-                          f"{mn}: IN -> {v}"
-                          + (f" ({chr(v)!r})" if 0 <= v < 0x110000 and chr(v).isprintable() else ""))
-            mem_used = True
-        elif mu == MicroOp.PORT_OUT_FROM_DS:
-            v = dp.data_stack.pop()
-            dp.mem_write(OUT_PORT, v)
-            self._log_msg("IO",
-                          f"{mn}: OUT <- {v}"
-                          + (f" ({chr(v & 0xFF)!r})" if 0 <= v < 0x110000 and chr(v & 0xFF).isprintable() else ""))
-            mem_used = True
-
-        elif mu == MicroOp.PORT_OUT_INT_FROM_DS:
-            v = dp.data_stack.pop()
-            for ch in str(v):
-                dp.mem_write(OUT_PORT, ord(ch))
-            self._log_msg("IO", f"{mn}: PRINT_INT <- {v}")
-            mem_used = True
-
-        elif mu == MicroOp.HALT:
+        if m["halt"]:
             dp.halted = True
-            self._log_msg("EXEC", f"{mn}: HALT — процессор остановлен", with_state=False)
+            self._log_msg("EXEC", f"{mn}: HALT", with_state=False)
             raise StopSignal("HALT")
 
-        else:
-            raise ValueError(f"Неизвестная микрооперация: {mu}")
+        if not m["fetch"]:
+            self._log_msg("EXEC", f"{mn}: {self._fmt_signals(m)}")
 
-        return mem_used
+        cond = m["cond"]
+        if cond == Cond.SEQ:
+            return upc + 1
+        if cond == Cond.NEXT:
+            return m["next_addr"]
+        if cond == Cond.DISPATCH:
+            try:
+                return OPCODE_TO_UADDR[dp.ir_opcode]
+            except KeyError:
+                raise ValueError(f"Неизвестный опкод: 0x{dp.ir_opcode:02X}")
+        if cond == Cond.IF_C:
+            return m["next_addr"] if dp.alu.c == 1 else upc + 1
+        if cond == Cond.IF_NC:
+            return m["next_addr"] if dp.alu.c == 0 else upc + 1
+        raise ValueError(f"Неизвестный cond={cond}")
 
-
-    def _exec_print_str(self, st: Instruction) -> tuple[bool, bool]:
-
-        dp = self.dp
-        phase = st.state.get("phase", 0)
-        count = st.state.get("count", 0)
-        st.state["count"] = count + 1
-        if count + 1 > self.max_print_str:
-            raise RuntimeError("PRINT_STR: похоже на бесконечную строку")
-
-        mn = "PRINT_STR"
-
-        if phase == 0:
-            dp.a = st.arg
-            self._log_msg("EXEC", f"{mn}: A <- IR.arg = {st.arg}  (init cursor)")
-            st.state["phase"] = 1
-            return False, False
-
-        if phase == 1:
-            dp.ar = dp.a
-            self._log_msg("EXEC", f"{mn}: AR <- A ({dp.a})")
-            st.state["phase"] = 2
-            return False, False
-
-        if phase == 2:
-            v = dp.mem_read(dp.ar)
-            dp.data_stack.push(v)
-            dp.alu.test_zero(v)
-            self._log_msg("EXEC", f"{mn}: DS push MEM[{dp.ar}]={v}; C={dp.alu.c}")
-            st.state["phase"] = 3
-            return False, True
-
-        if phase == 3:
-            if dp.alu.c == 1:
-                dp.data_stack.pop()
-                self._log_msg("EXEC", f"{mn}: терминатор cstr, завершение")
-                return True, False
-            dp.ar = OUT_PORT
-            self._log_msg("EXEC", f"{mn}: AR <- OUT_PORT")
-            st.state["phase"] = 4
-            return False, False
-
-        if phase == 4:
-            v = dp.data_stack.pop()
-            dp.mem_write(OUT_PORT, v)
-            self._log_msg("IO", f"{mn}: OUT <- {v} ({chr(v & 0xFF)!r})")
-            st.state["phase"] = 5
-            return False, True
-
-        if phase == 5:
-            dp.a += 1
-            self._log_msg("EXEC", f"{mn}: A <- A+1 = {dp.a}")
-            st.state["phase"] = 1
-            return False, False
-
-        return True, False
-
+    @staticmethod
+    def _fmt_signals(m: dict) -> str:
+        active = [f"{k}={v}" for k, v in m.items()
+                  if v and k not in ("cond", "next_addr")]
+        return " ".join(active) if active else "(нет сигналов)"
 
     def run(self) -> None:
-
         while not self.dp.halted and self.tick < MAX_TICKS:
+            self.tick += 1
+            m = decode_u(ROM[self.upc])
             try:
-                instr = self._fetch()
-                if instr is None:
-                    break
-                self._decode(instr)
-                self._execute(instr)
-                self.instr_count += 1
-            except StopSignal:
+                self.upc = self._exec_word(m)
+            except StopSignal as exc:
+                self.stop_reason = str(exc)
                 break
             except (IndexError, OverflowError, ZeroDivisionError, ValueError) as exc:
+                self.stop_reason = f"ERROR: {exc}"
                 self._log_msg("ERROR", str(exc), with_state=False)
                 break
 
         if self.tick >= MAX_TICKS:
-            self._log_msg("WARN", f"Достигнут лимит тактов ({MAX_TICKS})", with_state=False)
+            self.stop_reason = f"Достигнут лимит тактов ({MAX_TICKS})"
+            self._log_msg("WARN", self.stop_reason, with_state=False)
+
+        self._log_msg("STOP", self.stop_reason or "завершено", with_state=False)

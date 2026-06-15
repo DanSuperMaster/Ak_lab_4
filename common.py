@@ -1,9 +1,7 @@
 from enum import IntEnum, auto
 
-
-
-IN_PORT = 0xFFFFFE
-OUT_PORT = 0xFFFFFF
+IN_PORT = 0x7FFFFE
+OUT_PORT = 0x7FFFFF
 
 MAX_STACK_DEPTH = 1024
 MAX_TICKS = 5_000_000
@@ -52,11 +50,11 @@ class StopSignal(Exception):
     pass
 
 
-
 class Opcode(IntEnum):
     PUSH = 0x01
     LOAD = 0x02
     STORE = 0x03
+    LOAD_IND = 0x04
 
     ADD = 0x10
     SUB = 0x11
@@ -75,62 +73,191 @@ class Opcode(IntEnum):
     RS_PUSH = 0x34
     RS_POP = 0x35
 
-    IN = 0x40
-    OUT = 0x41
-
     DUP = 0x50
     POP = 0x51
     SWAP = 0x52
 
-    PRINT_STR = 0x60
-    PRINT_INT = 0x61
-
     HALT = 0xFF
 
 
-MC = {
-    Opcode.PUSH: [MicroOp.DS_PUSH_IR_ARG],
+class Cond(IntEnum):
+    SEQ = 0
+    NEXT = 1
+    DISPATCH = 2
+    IF_C = 3
+    IF_NC = 4
 
-    Opcode.LOAD: [MicroOp.AR_LATCH_IR_ARG,
-                  MicroOp.DS_PUSH_FROM_MEM],
 
-    Opcode.STORE: [MicroOp.AR_LATCH_IR_ARG,
-                   MicroOp.MEM_FROM_DS],
+class ArSel(IntEnum):
+    NONE = 0
+    PC = 1
+    ARG = 2
+    A = 3
+    B = 4
+    DS = 5
 
-    Opcode.ADD: [MicroOp.ALU_ADD],
-    Opcode.SUB: [MicroOp.ALU_SUB],
-    Opcode.MUL: [MicroOp.ALU_MUL],
-    Opcode.DIV: [MicroOp.ALU_DIV],
-    Opcode.MOD: [MicroOp.ALU_MOD],
-    Opcode.EQ: [MicroOp.ALU_EQ],
-    Opcode.LT: [MicroOp.ALU_LT],
-    Opcode.GT: [MicroOp.ALU_GT],
 
-    Opcode.JMP: [MicroOp.PC_LATCH_IR_ARG],
+class DsOp(IntEnum):
+    NONE = 0
+    PUSH_MEM = 1
+    POP_MEM = 2
+    PUSH_ARG = 3
+    DUP = 4
+    POP = 5
+    SWAP = 6
+    PUSH_RS = 7
 
-    Opcode.JZ: [MicroOp.ALU_TEST_ZERO,
-                MicroOp.PC_JZ_IR_ARG],
 
-    Opcode.CALL: [MicroOp.RS_PUSH_PC,
-                  MicroOp.PC_LATCH_IR_ARG],
+class RsOp(IntEnum):
+    NONE = 0
+    PUSH_PC = 1
+    PUSH_DS = 2
 
-    Opcode.RET: [MicroOp.PC_LATCH_RS_POP],
 
-    Opcode.RS_PUSH: [MicroOp.RS_PUSH_FROM_DS],
-    Opcode.RS_POP:  [MicroOp.DS_PUSH_FROM_RS],
+class RegOp(IntEnum):
+    NONE = 0
+    A_ARG = 1
+    A_INC = 2
+    B_ARG = 3
+    B_INC = 4
 
-    Opcode.IN: [MicroOp.AR_LATCH_IN_PORT,
-                MicroOp.DS_PUSH_FROM_PORT_IN],
 
-    Opcode.OUT: [MicroOp.AR_LATCH_OUT_PORT,
-                 MicroOp.PORT_OUT_FROM_DS],
+class PcOp(IntEnum):
+    NONE = 0
+    ARG = 1
+    RS = 2
+    ARG_IF_C = 3
 
-    Opcode.DUP: [MicroOp.DS_DUP],
-    Opcode.POP: [MicroOp.DS_POP],
-    Opcode.SWAP: [MicroOp.DS_SWAP],
 
-    Opcode.PRINT_STR: [MicroOp.A_LATCH_IR_ARG],
-    Opcode.PRINT_INT: [MicroOp.PORT_OUT_INT_FROM_DS],
+class AluOp(IntEnum):
+    NONE = 0
+    ADD = 1
+    SUB = 2
+    MUL = 3
+    DIV = 4
+    MOD = 5
+    EQ = 6
+    LT = 7
+    GT = 8
+    TEST_ZERO = 9
 
-    Opcode.HALT: [MicroOp.HALT],
+
+_FIELDS = {
+    "next_addr": (0, 0x3F),
+    "cond": (6, 0x7),
+    "alu_op": (9, 0xF),
+    "ar_sel": (13, 0x7),
+    "ds_op": (16, 0x7),
+    "rs_op": (19, 0x3),
+    "reg_op": (21, 0x7),
+    "pc_op": (26, 0x3),
+    "fetch": (28, 0x1),
+    "halt": (29, 0x1),
 }
+
+
+def encode_u(**fields) -> int:
+    word = 0
+    for name, value in fields.items():
+        shift, mask = _FIELDS[name]
+        word |= (int(value) & mask) << shift
+    return word
+
+
+def decode_u(word: int) -> dict:
+    return {name: (word >> shift) & mask
+            for name, (shift, mask) in _FIELDS.items()}
+
+
+class _MicroAsm:
+    def __init__(self) -> None:
+        self.words: list[tuple] = []
+        self.labels: dict[str, int] = {}
+        self.op_start: dict[int, int] = {}
+
+    def label(self, name: str) -> None:
+        self.labels[name] = len(self.words)
+
+    def op(self, opcode: int) -> None:
+        self.op_start[int(opcode)] = len(self.words)
+
+    def emit(self, *, target: str | None = None, **fields) -> None:
+        self.words.append((fields, target))
+
+    def assemble(self) -> tuple[list[int], dict[int, int]]:
+        rom: list[int] = []
+        for fields, target in self.words:
+            if target is not None:
+                fields = dict(fields, next_addr=self.labels[target])
+            rom.append(encode_u(**fields))
+        return rom, dict(self.op_start)
+
+
+def _build_microcode() -> tuple[list[int], dict[int, int]]:
+    a = _MicroAsm()
+
+    a.label("FETCH")
+    a.emit(fetch=1, cond=Cond.DISPATCH)
+
+    end = {"cond": Cond.NEXT, "target": "FETCH"}
+
+    a.op(Opcode.PUSH)
+    a.emit(ds_op=DsOp.PUSH_ARG, **end)
+
+    a.op(Opcode.LOAD)
+    a.emit(ar_sel=ArSel.ARG)
+    a.emit(ds_op=DsOp.PUSH_MEM, **end)
+
+    a.op(Opcode.STORE)
+    a.emit(ar_sel=ArSel.ARG)
+    a.emit(ds_op=DsOp.POP_MEM, **end)
+
+    a.op(Opcode.LOAD_IND)
+    a.emit(ar_sel=ArSel.DS, ds_op=DsOp.POP)
+    a.emit(ds_op=DsOp.PUSH_MEM, **end)
+
+    for opcode, alu in (
+            (Opcode.ADD, AluOp.ADD), (Opcode.SUB, AluOp.SUB),
+            (Opcode.MUL, AluOp.MUL), (Opcode.DIV, AluOp.DIV),
+            (Opcode.MOD, AluOp.MOD), (Opcode.EQ, AluOp.EQ),
+            (Opcode.LT, AluOp.LT), (Opcode.GT, AluOp.GT),
+    ):
+        a.op(opcode)
+        a.emit(alu_op=alu, **end)
+
+    a.op(Opcode.JMP)
+    a.emit(pc_op=PcOp.ARG, **end)
+
+    a.op(Opcode.JZ)
+    a.emit(alu_op=AluOp.TEST_ZERO)
+    a.emit(pc_op=PcOp.ARG_IF_C, **end)
+
+    a.op(Opcode.CALL)
+    a.emit(rs_op=RsOp.PUSH_PC)
+    a.emit(pc_op=PcOp.ARG, **end)
+
+    a.op(Opcode.RET)
+    a.emit(pc_op=PcOp.RS, **end)
+
+    a.op(Opcode.RS_PUSH)
+    a.emit(rs_op=RsOp.PUSH_DS, **end)
+
+    a.op(Opcode.RS_POP)
+    a.emit(ds_op=DsOp.PUSH_RS, **end)
+
+    a.op(Opcode.DUP)
+    a.emit(ds_op=DsOp.DUP, **end)
+
+    a.op(Opcode.POP)
+    a.emit(ds_op=DsOp.POP, **end)
+
+    a.op(Opcode.SWAP)
+    a.emit(ds_op=DsOp.SWAP, **end)
+
+    a.op(Opcode.HALT)
+    a.emit(halt=1)
+
+    return a.assemble()
+
+
+ROM, OPCODE_TO_UADDR = _build_microcode()
