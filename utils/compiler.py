@@ -1,6 +1,6 @@
 import argparse
 
-from utils.isa import Opcode, write_binary, dump_text
+from utils.isa import Opcode, write_binary, dump_text, IN_PORT, OUT_PORT
 from utils.lexer import Lexer, Parser
 
 
@@ -100,6 +100,12 @@ class Compiler:
         if len(expr) == 0:
             return
 
+        if len(expr) == 2 and expr[0] == '__string__':
+            offset = self.alloc_string(expr[1])
+            pos = self.emit(Opcode.PUSH, self._data_arg(offset))
+            self._pending.append(("__data__", pos))
+            return
+
         op = str(expr[0]).upper()
 
         if op == '+':
@@ -158,17 +164,27 @@ class Compiler:
             self.emit_store_var(name)
             return
 
-        if op == 'PRINT':
-            arg = expr[1]
-            if isinstance(arg, list) and len(arg) == 2 and arg[0] == '__string__':
-                self._compile_print_str(arg[1])
-            else:
-                self.compile_expr(arg)
-                self.emit(Opcode.PRINT_INT)
+        if op == 'WRITE':
+            self.compile_expr(expr[1])
+            self.emit(Opcode.STORE, OUT_PORT)
+            return
+
+        if op == 'PEEK':
+            self.compile_expr(expr[1])
+            self.emit(Opcode.LOAD_IND)
             return
 
         if op == 'READ':
-            self.emit(Opcode.IN)
+            self.emit(Opcode.LOAD, IN_PORT)
+            return
+
+        if op == 'LIST':
+            offset = len(self.data_section)
+            for elem in expr[1:]:
+                self.data_section.append(int(elem))
+            self.data_section.append(0)
+            pos = self.emit(Opcode.PUSH, self._data_arg(offset))
+            self._pending.append(("__data__", pos))
             return
 
         if op == 'PROGN':
@@ -256,11 +272,6 @@ class Compiler:
             pos = self.emit(Opcode.CALL, 0)
             self._pending.append((op, pos))
 
-    def _compile_print_str(self, s):
-        offset = self.alloc_string(s)
-        pos = self.emit(Opcode.PRINT_STR, self._data_arg(offset))
-        self._pending.append(("__data__", pos))
-
     def _collect_locals(self, expr, params, found):
         if not isinstance(expr, list) or len(expr) == 0:
             return
@@ -287,14 +298,12 @@ class Compiler:
         func_addr = len(self.code)
         self.functions[name] = func_addr
 
-        # пролог: сохраняем параметры
         for param in reversed(params):
             self.alloc_var(param)
             self.emit_load_var(param)
             self.emit(Opcode.RS_PUSH)
             self.emit_store_var(param)
 
-        # пролог: собираем и сохраняем локальные переменные
         locals_ = []
         self._collect_locals(body, params, locals_)
         for local in locals_:
@@ -304,7 +313,6 @@ class Compiler:
 
         self.compile_expr(body)
 
-        # эпилог: восстанавливаем локальные (обратный порядок)
         for local in reversed(locals_):
             self.emit(Opcode.RS_POP)
             self.emit_store_var(local)
