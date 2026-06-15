@@ -1,0 +1,175 @@
+# golden-тест: hello_user_name
+source: |
+  (DEFUN PRINT-STR (PTR)
+    (WHILE (PEEK PTR)
+      (PROGN
+        (WRITE (PEEK PTR))
+        (SETQ PTR (+ PTR 1)))))
+
+  (PRINT-STR "What is your name?")
+  (WRITE 10)
+
+  (PRINT-STR "Hello, ")
+  (SETQ C (READ))
+  (WHILE (- C 10)
+    (PROGN
+      (WRITE C)
+      (SETQ C (READ))))
+  (WRITE 33)
+  (WRITE 10)
+
+input: 'Alice\n'
+
+translator_output: |
+  instructions: 40
+  data words: 29
+
+machine_code: |
+  === Instruction memory ===
+  0000 - 30000012 - JMP 18
+  0004 - 02000028 - LOAD 40
+  0008 - 34000000 - RS_PUSH
+  0012 - 03000028 - STORE 40
+  0016 - 02000028 - LOAD 40
+  0020 - 04000000 - LOAD_IND
+  0024 - 3100000F - JZ 15
+  0028 - 02000028 - LOAD 40
+  0032 - 04000000 - LOAD_IND
+  0036 - 037FFFFF - STORE 8388607
+  0040 - 02000028 - LOAD 40
+  0044 - 01000001 - PUSH 1
+  0048 - 10000000 - ADD
+  0052 - 03000028 - STORE 40
+  0056 - 30000004 - JMP 4
+  0060 - 35000000 - RS_POP
+  0064 - 03000028 - STORE 40
+  0068 - 33000000 - RET
+  0072 - 01000029 - PUSH 41
+  0076 - 32000001 - CALL 1
+  0080 - 0100000A - PUSH 10
+  0084 - 037FFFFF - STORE 8388607
+  0088 - 0100003C - PUSH 60
+  0092 - 32000001 - CALL 1
+  0096 - 027FFFFE - LOAD 8388606
+  0100 - 03000029 - STORE 41
+  0104 - 02000029 - LOAD 41
+  0108 - 0100000A - PUSH 10
+  0112 - 11000000 - SUB
+  0116 - 31000023 - JZ 35
+  0120 - 02000029 - LOAD 41
+  0124 - 037FFFFF - STORE 8388607
+  0128 - 027FFFFE - LOAD 8388606
+  0132 - 03000029 - STORE 41
+  0136 - 3000001A - JMP 26
+  0140 - 01000021 - PUSH 33
+  0144 - 037FFFFF - STORE 8388607
+  0148 - 0100000A - PUSH 10
+  0152 - 037FFFFF - STORE 8388607
+  0156 - FF000000 - HALT
+
+  === Data memory ===
+  0000 - 0
+  0004 - 87
+  0008 - 104
+  0012 - 97
+  0016 - 116
+  0020 - 32
+  0024 - 105
+  0028 - 115
+  0032 - 32
+  0036 - 121
+  0040 - 111
+  0044 - 117
+  0048 - 114
+  0052 - 32
+  0056 - 110
+  0060 - 97
+  0064 - 109
+  0068 - 101
+  0072 - 63
+  0076 - 0
+  0080 - 72
+  0084 - 101
+  0088 - 108
+  0092 - 108
+  0096 - 111
+  0100 - 44
+  0104 - 32
+  0108 - 0
+  0112 - 0
+
+machine_output: |
+  What is your name?
+  Hello, Alice!
+
+output: [87, 104, 97, 116, 32, 105, 115, 32, 121, 111, 117, 114, 32, 110, 97, 109, 101, 63, 10, 72, 101, 108, 108, 111, 44, 32, 65, 108, 105, 99, 101, 33, 10]
+ticks: 963
+
+log: |
+  tick=     1 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(18) @ 0
+  tick=     2 | uPC=16 PC=0018 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=     3 | uPC=00 PC=0019 AR=0012 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(41) @ 18
+  tick=     4 | uPC=01 PC=0019 AR=0012 A=0000 B=0000 C=0 DS=[41] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=     5 | uPC=00 PC=0020 AR=0013 A=0000 B=0000 C=0 DS=[41] RS=[] | FETCH   | CALL(1) @ 19
+  tick=     6 | uPC=19 PC=0020 AR=0013 A=0000 B=0000 C=0 DS=[41] RS=[20] | EXEC    | CALL: rs_op=1
+  tick=     7 | uPC=20 PC=0001 AR=0013 A=0000 B=0000 C=0 DS=[41] RS=[20] | EXEC    | CALL: pc_op=1
+  tick=     8 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[41] RS=[20] | FETCH   | LOAD(40) @ 1
+  tick=     9 | uPC=02 PC=0002 AR=0028 A=0000 B=0000 C=0 DS=[41] RS=[20] | EXEC    | LOAD: ar_sel=2
+  tick=    10 | uPC=03 PC=0002 AR=0028 A=0000 B=0000 C=0 DS=[41, 0] RS=[20] | EXEC    | LOAD: ds_op=1
+  tick=    11 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[41, 0] RS=[20] | FETCH   | RS_PUSH(0) @ 2
+  tick=    12 | uPC=22 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[41] RS=[20, 0] | EXEC    | RS_PUSH: rs_op=2
+  tick=    13 | uPC=00 PC=0004 AR=0003 A=0000 B=0000 C=0 DS=[41] RS=[20, 0] | FETCH   | STORE(40) @ 3
+  tick=    14 | uPC=04 PC=0004 AR=0028 A=0000 B=0000 C=0 DS=[41] RS=[20, 0] | EXEC    | STORE: ar_sel=2
+  tick=    15 | uPC=05 PC=0004 AR=0028 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | EXEC    | STORE: ds_op=2
+  tick=    16 | uPC=00 PC=0005 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | FETCH   | LOAD(40) @ 4
+  tick=    17 | uPC=02 PC=0005 AR=0028 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | EXEC    | LOAD: ar_sel=2
+  tick=    18 | uPC=03 PC=0005 AR=0028 A=0000 B=0000 C=0 DS=[41] RS=[20, 0] | EXEC    | LOAD: ds_op=1
+  tick=    19 | uPC=00 PC=0006 AR=0005 A=0000 B=0000 C=0 DS=[41] RS=[20, 0] | FETCH   | LOAD_IND(0) @ 5
+  tick=    20 | uPC=06 PC=0006 AR=0029 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | EXEC    | LOAD_IND: ar_sel=5 ds_op=5
+  tick=    21 | uPC=07 PC=0006 AR=0029 A=0000 B=0000 C=0 DS=[87] RS=[20, 0] | EXEC    | LOAD_IND: ds_op=1
+  tick=    22 | uPC=00 PC=0007 AR=0006 A=0000 B=0000 C=0 DS=[87] RS=[20, 0] | FETCH   | JZ(15) @ 6
+  tick=    23 | uPC=17 PC=0007 AR=0006 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | EXEC    | JZ: alu_op=9
+  tick=    24 | uPC=18 PC=0007 AR=0006 A=0000 B=0000 C=0 DS=[] RS=[20, 0] | EXEC    | JZ: pc_op=3
+    ...  (932 строк журнала пропущено для краткости)  ...
+  tick=   957 | uPC=00 PC=0038 AR=0025 A=0000 B=0000 C=1 DS=[] RS=[] | FETCH   | PUSH(10) @ 37
+  tick=   958 | uPC=01 PC=0038 AR=0025 A=0000 B=0000 C=1 DS=[10] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=   959 | uPC=00 PC=0039 AR=0026 A=0000 B=0000 C=1 DS=[10] RS=[] | FETCH   | STORE(8388607) @ 38
+  tick=   960 | uPC=04 PC=0039 AR=7fffff A=0000 B=0000 C=1 DS=[10] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=   961 | uPC=05 PC=0039 AR=7fffff A=0000 B=0000 C=1 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=   962 | uPC=00 PC=0040 AR=0027 A=0000 B=0000 C=1 DS=[] RS=[] | FETCH   | HALT(0) @ 39
+  tick=   963 | EXEC    | HALT: HALT
+  tick=   963 | STOP    | HALT
+  ============================================================
+  stop: HALT
+  output_buffer: [87, 104, 97, 116, 32, 105, 115, 32, 121, 111, 117, 114, 32, 110, 97, 109, 101, 63, 10, 72, 101, 108, 108, 111, 44, 32, 65, 108, 105, 99, 101, 33, 10]
+  ticks: 963  instructions: 356
+  data memory dump (addr: value):
+    [   40] = 0
+    [   41] = 10
+    [   42] = 104
+    [   43] = 97
+    [   44] = 116
+    [   45] = 32
+    [   46] = 105
+    [   47] = 115
+    [   48] = 32
+    [   49] = 121
+    [   50] = 111
+    [   51] = 117
+    [   52] = 114
+    [   53] = 32
+    [   54] = 110
+    [   55] = 97
+    [   56] = 109
+    [   57] = 101
+    [   58] = 63
+    [   59] = 0
+    [   60] = 72
+    [   61] = 101
+    [   62] = 108
+    [   63] = 108
+    [   64] = 111
+    [   65] = 44
+    [   66] = 32
+    [   67] = 0
+    [   68] = 0

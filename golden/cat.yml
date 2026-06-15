@@ -1,0 +1,95 @@
+# golden-тест: cat
+source: |
+  (WHILE 1
+    (WRITE (READ)))
+
+input: 'foo bar\nbaz\n'
+
+translator_output: |
+  instructions: 6
+  data words: 0
+
+machine_code: |
+  === Instruction memory ===
+  0000 - 01000001 - PUSH 1
+  0004 - 31000005 - JZ 5
+  0008 - 027FFFFE - LOAD 8388606
+  0012 - 037FFFFF - STORE 8388607
+  0016 - 30000000 - JMP
+  0020 - FF000000 - HALT
+
+  === Data memory ===
+
+machine_output: |
+  foo bar
+  baz
+
+output: [102, 111, 111, 32, 98, 97, 114, 10, 98, 97, 122, 10]
+ticks: 164
+
+log: |
+  tick=     1 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1) @ 0
+  tick=     2 | uPC=01 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=     3 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(5) @ 1
+  tick=     4 | uPC=17 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
+  tick=     5 | uPC=18 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
+  tick=     6 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 2
+  tick=     7 | uPC=02 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=     8 | uPC=03 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[102] RS=[] | EXEC    | LOAD: ds_op=1
+  tick=     9 | uPC=00 PC=0004 AR=0003 A=0000 B=0000 C=0 DS=[102] RS=[] | FETCH   | STORE(8388607) @ 3
+  tick=    10 | uPC=04 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[102] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=    11 | uPC=05 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=    12 | uPC=00 PC=0005 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(0) @ 4
+  tick=    13 | uPC=16 PC=0000 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=    14 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1) @ 0
+  tick=    15 | uPC=01 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=    16 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(5) @ 1
+  tick=    17 | uPC=17 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
+  tick=    18 | uPC=18 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
+  tick=    19 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 2
+  tick=    20 | uPC=02 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=    21 | uPC=03 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[111] RS=[] | EXEC    | LOAD: ds_op=1
+  tick=    22 | uPC=00 PC=0004 AR=0003 A=0000 B=0000 C=0 DS=[111] RS=[] | FETCH   | STORE(8388607) @ 3
+  tick=    23 | uPC=04 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[111] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=    24 | uPC=05 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+    ...  (105 строк журнала пропущено для краткости)  ...
+  tick=   130 | uPC=16 PC=0000 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=   131 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1) @ 0
+  tick=   132 | uPC=01 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=   133 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(5) @ 1
+  tick=   134 | uPC=17 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
+  tick=   135 | uPC=18 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
+  tick=   136 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 2
+  tick=   137 | uPC=02 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=   138 | uPC=03 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[122] RS=[] | EXEC    | LOAD: ds_op=1
+  tick=   139 | uPC=00 PC=0004 AR=0003 A=0000 B=0000 C=0 DS=[122] RS=[] | FETCH   | STORE(8388607) @ 3
+  tick=   140 | uPC=04 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[122] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=   141 | uPC=05 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=   142 | uPC=00 PC=0005 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(0) @ 4
+  tick=   143 | uPC=16 PC=0000 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=   144 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1) @ 0
+  tick=   145 | uPC=01 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=   146 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(5) @ 1
+  tick=   147 | uPC=17 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
+  tick=   148 | uPC=18 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
+  tick=   149 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 2
+  tick=   150 | uPC=02 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=   151 | uPC=03 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[10] RS=[] | EXEC    | LOAD: ds_op=1
+  tick=   152 | uPC=00 PC=0004 AR=0003 A=0000 B=0000 C=0 DS=[10] RS=[] | FETCH   | STORE(8388607) @ 3
+  tick=   153 | uPC=04 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[10] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=   154 | uPC=05 PC=0004 AR=7fffff A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=   155 | uPC=00 PC=0005 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(0) @ 4
+  tick=   156 | uPC=16 PC=0000 AR=0004 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=   157 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1) @ 0
+  tick=   158 | uPC=01 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=   159 | uPC=00 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(5) @ 1
+  tick=   160 | uPC=17 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
+  tick=   161 | uPC=18 PC=0002 AR=0001 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
+  tick=   162 | uPC=00 PC=0003 AR=0002 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 2
+  tick=   163 | uPC=02 PC=0003 AR=7ffffe A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=   164 | STOP    | Конец входного буфера
+  ============================================================
+  stop: Конец входного буфера
+  output_buffer: [102, 111, 111, 32, 98, 97, 114, 10, 98, 97, 122, 10]
+  ticks: 164  instructions: 63
+  data memory dump (addr: value):
