@@ -32,7 +32,6 @@ class Lexer:
 
     def read_string(self):
         stroke = ""
-
         self.advance()
 
         while self.current_char() is not None:
@@ -54,7 +53,6 @@ class Lexer:
         result = ""
 
         while self.current_char() is not None:
-
             char = self.current_char()
 
             if self.is_identifier_char(char):
@@ -83,8 +81,8 @@ class Lexer:
                 continue
 
             if self.current_char() == '\"':
-                stroka = self.read_string()
-                tokens.append(("STRING", stroka))
+                stroke = self.read_string()
+                tokens.append(("STRING", stroke))
                 continue
 
             if self.current_char() == '(':

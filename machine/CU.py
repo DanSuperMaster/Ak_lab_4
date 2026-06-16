@@ -3,23 +3,11 @@ from typing import Optional
 
 from machine.datapath import DataPath
 from common import (
-    MAX_TICKS, StopSignal, MicroOp,
+    MAX_TICKS, StopSignal,
     ROM, OPCODE_TO_UADDR, decode_u,
     Cond, ArSel, DsOp, RsOp, RegOp, PcOp, AluOp,
 )
 from utils.isa import decode_instruction, OPCODE_NAMES
-
-
-_ALU_TO_MICROOP = {
-    AluOp.ADD: MicroOp.ALU_ADD,
-    AluOp.SUB: MicroOp.ALU_SUB,
-    AluOp.MUL: MicroOp.ALU_MUL,
-    AluOp.DIV: MicroOp.ALU_DIV,
-    AluOp.MOD: MicroOp.ALU_MOD,
-    AluOp.EQ: MicroOp.ALU_EQ,
-    AluOp.LT: MicroOp.ALU_LT,
-    AluOp.GT: MicroOp.ALU_GT,
-}
 
 
 class ControlUnit:
@@ -122,7 +110,7 @@ class ControlUnit:
         elif alu_op != AluOp.NONE:
             right = dp.data_stack.pop()
             left = dp.data_stack.pop()
-            r = dp.alu.binop(_ALU_TO_MICROOP[alu_op], left, right)
+            r = dp.alu.binop(alu_op, left, right)
             dp.data_stack.push(r)
 
         rs_op = m["rs_op"]

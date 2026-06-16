@@ -1,16 +1,10 @@
 import struct
-from enum import IntEnum
 from common import IN_PORT, OUT_PORT, Opcode
 
 WORD_SIZE = 32
 INSTRUCTION_SIZE = 4
 ARG_MASK = 0x00FFFFFF
 ARG_SIGN_BIT = 0x800000
-
-
-
-
-
 OPCODE_NAMES: dict[int, str] = {op.value: op.name for op in Opcode}
 OPCODE_BY_NAME: dict[str, int] = {op.name: op.value for op in Opcode}
 
