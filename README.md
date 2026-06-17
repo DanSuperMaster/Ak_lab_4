@@ -31,34 +31,34 @@ Lisp-подобный язык на S-выражениях. Поддержива
 ### BNF
 
 ```text
-<program>        ::= { <top-level-form> }
+<program> ::= { <top-level-form> }
 <top-level-form> ::= <defun> | <expr>
 
-<expr>    ::= <integer> | <string> | <identifier> | 'T' | 'NIL'
+<expr> ::= <integer> | <string> | <identifier> | 'T' | 'NIL'
             | <setq> | <if> | <while> | <progn> | <cond>
             | <arith> | <compare> | <io> | <list> | <call>
 
 <integer> ::= [ '-' ] <digit> { <digit> }
-<string>  ::= '"' { <любой символ кроме '"'> | '""' } '"'
+<string> ::= '"' { <любой символ кроме '"'> | '""' } '"'
 <identifier> ::= <id-char> { <id-char> }   
 
-<setq>    ::= '(' 'SETQ' <identifier> <expr> ')'
-<if>      ::= '(' 'IF' <expr> <expr> [ <expr> ] ')'
-<while>   ::= '(' 'WHILE' <expr> <expr> ')'
-<progn>   ::= '(' 'PROGN' { <expr> } ')'
-<cond>    ::= '(' 'COND' { '(' <expr> <expr> ')' } ')'
+<setq> ::= '(' 'SETQ' <identifier> <expr> ')'
+<if> ::= '(' 'IF' <expr> <expr> [ <expr> ] ')'
+<while> ::= '(' 'WHILE' <expr> <expr> ')'
+<progn> ::= '(' 'PROGN' { <expr> } ')'
+<cond> ::= '(' 'COND' { '(' <expr> <expr> ')' } ')'
 
-<arith>   ::= '(' ( '+' | '-' | '+C' | '-B' | '*' | '/' | '%' ) <expr> <expr> ')'
+<arith> ::= '(' ( '+' | '-' | '+C' | '-B' | '*' | '/' | '%' ) <expr> <expr> ')'
 <compare> ::= '(' ( '=' | '<' | '>' ) <expr> <expr> ')'
 
-<io>      ::= '(' 'READ' ')'
+<io> ::= '(' 'READ' ')'
             | '(' 'WRITE' <expr> ')'
             | '(' 'PEEK'  <expr> ')'
 
-<list>    ::= '(' 'LIST' { <integer> } ')'
+<list> ::= '(' 'LIST' { <integer> } ')'
 
-<defun>   ::= '(' 'DEFUN' <identifier> '(' { <identifier> } ')' <expr> ')'
-<call>    ::= '(' <identifier> { <expr> } ')'
+<defun> ::= '(' 'DEFUN' <identifier> '(' { <identifier> } ')' <expr> ')'
+<call> ::= '(' <identifier> { <expr> } ')'
 ```
 
 ### Семантика ключевых слов
@@ -80,8 +80,7 @@ Lisp-подобный язык на S-выражениях. Поддержива
 
 ### Семантика
 
-- **Стратегия вычислений** — аргументы вычисляются
-  слева направо и кладутся на стек данных перед операцией/вызовом.
+- **Стратегия вычислений** —  аргументы вычисляются слева направо до применения функции.
 - **Любое выражение возвращает значение** на вершину стека: арифметика, сравнения,
   `IF`, `COND`, вызов функции.
 - **Области видимости.** Переменные — глобальные, параметры внутри функций являются локальными. 
