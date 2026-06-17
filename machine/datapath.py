@@ -9,15 +9,11 @@ class DataPath:
     ir_opcode: int = 0
     ir_arg: int = 0
     ar: int = 0
-    a: int = 0
-    b: int = 0
 
     def __init__(self, memory: list[int], input_buffer: list[int] | None = None):
         self.memory = memory
         self.pc = 0
         self.ar = 0
-        self.a = 0
-        self.b = 0
         self.data_stack = Stack("DS")
         self.return_stack = Stack("RS")
         self.alu = ALU()

@@ -227,61 +227,61 @@ machine_output: |
   906609
 
 output: [57, 48, 54, 54, 48, 57, 10]
-ticks: 1305512
+ticks: 1833849
 
 log: |
-  tick=     1 | uPC=00 PC=0001 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(62) @ 0
-  tick=     2 | uPC=16 PC=0062 AR=0000 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
-  tick=     3 | uPC=00 PC=0063 AR=003e A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | JMP(101) @ 62
-  tick=     4 | uPC=16 PC=0101 AR=003e A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
-  tick=     5 | uPC=00 PC=0102 AR=0065 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(0) @ 101
-  tick=     6 | uPC=01 PC=0102 AR=0065 A=0000 B=0000 C=0 DS=[0] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=     7 | uPC=00 PC=0103 AR=0066 A=0000 B=0000 C=0 DS=[0] RS=[] | FETCH   | STORE(160) @ 102
-  tick=     8 | uPC=04 PC=0103 AR=00a0 A=0000 B=0000 C=0 DS=[0] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=     9 | uPC=05 PC=0103 AR=00a0 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
-  tick=    10 | uPC=00 PC=0104 AR=0067 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(999) @ 103
-  tick=    11 | uPC=01 PC=0104 AR=0067 A=0000 B=0000 C=0 DS=[999] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=    12 | uPC=00 PC=0105 AR=0068 A=0000 B=0000 C=0 DS=[999] RS=[] | FETCH   | STORE(161) @ 104
-  tick=    13 | uPC=04 PC=0105 AR=00a1 A=0000 B=0000 C=0 DS=[999] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=    14 | uPC=05 PC=0105 AR=00a1 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
-  tick=    15 | uPC=00 PC=0106 AR=0069 A=0000 B=0000 C=0 DS=[] RS=[] | FETCH   | LOAD(161) @ 105
-  tick=    16 | uPC=02 PC=0106 AR=00a1 A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
-  tick=    17 | uPC=03 PC=0106 AR=00a1 A=0000 B=0000 C=0 DS=[999] RS=[] | EXEC    | LOAD: ds_op=1
-  tick=    18 | uPC=00 PC=0107 AR=006a A=0000 B=0000 C=0 DS=[999] RS=[] | FETCH   | PUSH(99) @ 106
-  tick=    19 | uPC=01 PC=0107 AR=006a A=0000 B=0000 C=0 DS=[999, 99] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=    20 | uPC=00 PC=0108 AR=006b A=0000 B=0000 C=0 DS=[999, 99] RS=[] | FETCH   | GT(0) @ 107
-  tick=    21 | uPC=15 PC=0108 AR=006b A=0000 B=0000 C=0 DS=[1] RS=[] | EXEC    | GT: alu_op=8
-  tick=    22 | uPC=00 PC=0109 AR=006c A=0000 B=0000 C=0 DS=[1] RS=[] | FETCH   | JZ(148) @ 108
-  tick=    23 | uPC=17 PC=0109 AR=006c A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: alu_op=9
-  tick=    24 | uPC=18 PC=0109 AR=006c A=0000 B=0000 C=0 DS=[] RS=[] | EXEC    | JZ: pc_op=3
-    ...  (1305466 строк журнала пропущено для краткости)  ...
-  tick=1305491 | uPC=00 PC=0057 AR=0038 A=0000 B=0000 C=1 DS=[0] RS=[0, 0] | FETCH   | STORE(155) @ 56
-  tick=1305492 | uPC=04 PC=0057 AR=009b A=0000 B=0000 C=1 DS=[0] RS=[0, 0] | EXEC    | STORE: ar_sel=2
-  tick=1305493 | uPC=05 PC=0057 AR=009b A=0000 B=0000 C=1 DS=[] RS=[0, 0] | EXEC    | STORE: ds_op=2
-  tick=1305494 | uPC=00 PC=0058 AR=0039 A=0000 B=0000 C=1 DS=[] RS=[0, 0] | FETCH   | RS_POP(0) @ 57
-  tick=1305495 | uPC=23 PC=0058 AR=0039 A=0000 B=0000 C=1 DS=[0] RS=[150, 0] | EXEC    | RS_POP: ds_op=7
-  tick=1305496 | uPC=00 PC=0059 AR=003a A=0000 B=0000 C=1 DS=[0] RS=[150, 0] | FETCH   | STORE(154) @ 58
-  tick=1305497 | uPC=04 PC=0059 AR=009a A=0000 B=0000 C=1 DS=[0] RS=[150, 0] | EXEC    | STORE: ar_sel=2
-  tick=1305498 | uPC=05 PC=0059 AR=009a A=0000 B=0000 C=1 DS=[] RS=[150, 0] | EXEC    | STORE: ds_op=2
-  tick=1305499 | uPC=00 PC=0060 AR=003b A=0000 B=0000 C=1 DS=[] RS=[150, 0] | FETCH   | RS_POP(0) @ 59
-  tick=1305500 | uPC=23 PC=0060 AR=003b A=0000 B=0000 C=1 DS=[0] RS=[150] | EXEC    | RS_POP: ds_op=7
-  tick=1305501 | uPC=00 PC=0061 AR=003c A=0000 B=0000 C=1 DS=[0] RS=[150] | FETCH   | STORE(153) @ 60
-  tick=1305502 | uPC=04 PC=0061 AR=0099 A=0000 B=0000 C=1 DS=[0] RS=[150] | EXEC    | STORE: ar_sel=2
-  tick=1305503 | uPC=05 PC=0061 AR=0099 A=0000 B=0000 C=1 DS=[] RS=[150] | EXEC    | STORE: ds_op=2
-  tick=1305504 | uPC=00 PC=0062 AR=003d A=0000 B=0000 C=1 DS=[] RS=[150] | FETCH   | RET(0) @ 61
-  tick=1305505 | uPC=21 PC=0150 AR=003d A=0000 B=0000 C=1 DS=[] RS=[] | EXEC    | RET: pc_op=2
-  tick=1305506 | uPC=00 PC=0151 AR=0096 A=0000 B=0000 C=1 DS=[] RS=[] | FETCH   | PUSH(10) @ 150
-  tick=1305507 | uPC=01 PC=0151 AR=0096 A=0000 B=0000 C=1 DS=[10] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=1305508 | uPC=00 PC=0152 AR=0097 A=0000 B=0000 C=1 DS=[10] RS=[] | FETCH   | STORE(8388607) @ 151
-  tick=1305509 | uPC=04 PC=0152 AR=7fffff A=0000 B=0000 C=1 DS=[10] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=1305510 | uPC=05 PC=0152 AR=7fffff A=0000 B=0000 C=1 DS=[] RS=[] | EXEC    | STORE: ds_op=2
-  tick=1305511 | uPC=00 PC=0153 AR=0098 A=0000 B=0000 C=1 DS=[] RS=[] | FETCH   | HALT(0) @ 152
-  tick=1305512 | EXEC    | HALT: HALT
-  tick=1305512 | STOP    | HALT
+  tick=     1 | uPC=00 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     2 | uPC=01 PC=0001 AR=0000 C=0 DS=[] RS=[] | FETCH   | JMP(62) @ 0
+  tick=     3 | uPC=17 PC=0062 AR=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=     4 | uPC=00 PC=0062 AR=003e C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     5 | uPC=01 PC=0063 AR=003e C=0 DS=[] RS=[] | FETCH   | JMP(101) @ 62
+  tick=     6 | uPC=17 PC=0101 AR=003e C=0 DS=[] RS=[] | EXEC    | JMP: pc_op=1
+  tick=     7 | uPC=00 PC=0101 AR=0065 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     8 | uPC=01 PC=0102 AR=0065 C=0 DS=[] RS=[] | FETCH   | PUSH(0) @ 101
+  tick=     9 | uPC=02 PC=0102 AR=0065 C=0 DS=[0] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=    10 | uPC=00 PC=0102 AR=0066 C=0 DS=[0] RS=[] | FETCH   | AR <- PC
+  tick=    11 | uPC=01 PC=0103 AR=0066 C=0 DS=[0] RS=[] | FETCH   | STORE(160) @ 102
+  tick=    12 | uPC=05 PC=0103 AR=00a0 C=0 DS=[0] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=    13 | uPC=06 PC=0103 AR=00a0 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=    14 | uPC=00 PC=0103 AR=0067 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=    15 | uPC=01 PC=0104 AR=0067 C=0 DS=[] RS=[] | FETCH   | PUSH(999) @ 103
+  tick=    16 | uPC=02 PC=0104 AR=0067 C=0 DS=[999] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=    17 | uPC=00 PC=0104 AR=0068 C=0 DS=[999] RS=[] | FETCH   | AR <- PC
+  tick=    18 | uPC=01 PC=0105 AR=0068 C=0 DS=[999] RS=[] | FETCH   | STORE(161) @ 104
+  tick=    19 | uPC=05 PC=0105 AR=00a1 C=0 DS=[999] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=    20 | uPC=06 PC=0105 AR=00a1 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=    21 | uPC=00 PC=0105 AR=0069 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=    22 | uPC=01 PC=0106 AR=0069 C=0 DS=[] RS=[] | FETCH   | LOAD(161) @ 105
+  tick=    23 | uPC=03 PC=0106 AR=00a1 C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=    24 | uPC=04 PC=0106 AR=00a1 C=0 DS=[999] RS=[] | EXEC    | LOAD: ds_op=1
+    ...  (1833803 строк журнала пропущено для краткости)  ...
+  tick=1833828 | uPC=05 PC=0059 AR=009a C=1 DS=[0] RS=[150, 0] | EXEC    | STORE: ar_sel=2
+  tick=1833829 | uPC=06 PC=0059 AR=009a C=1 DS=[] RS=[150, 0] | EXEC    | STORE: ds_op=2
+  tick=1833830 | uPC=00 PC=0059 AR=003b C=1 DS=[] RS=[150, 0] | FETCH   | AR <- PC
+  tick=1833831 | uPC=01 PC=0060 AR=003b C=1 DS=[] RS=[150, 0] | FETCH   | RS_POP(0) @ 59
+  tick=1833832 | uPC=24 PC=0060 AR=003b C=1 DS=[0] RS=[150] | EXEC    | RS_POP: ds_op=7
+  tick=1833833 | uPC=00 PC=0060 AR=003c C=1 DS=[0] RS=[150] | FETCH   | AR <- PC
+  tick=1833834 | uPC=01 PC=0061 AR=003c C=1 DS=[0] RS=[150] | FETCH   | STORE(153) @ 60
+  tick=1833835 | uPC=05 PC=0061 AR=0099 C=1 DS=[0] RS=[150] | EXEC    | STORE: ar_sel=2
+  tick=1833836 | uPC=06 PC=0061 AR=0099 C=1 DS=[] RS=[150] | EXEC    | STORE: ds_op=2
+  tick=1833837 | uPC=00 PC=0061 AR=003d C=1 DS=[] RS=[150] | FETCH   | AR <- PC
+  tick=1833838 | uPC=01 PC=0062 AR=003d C=1 DS=[] RS=[150] | FETCH   | RET(0) @ 61
+  tick=1833839 | uPC=22 PC=0150 AR=003d C=1 DS=[] RS=[] | EXEC    | RET: pc_op=2
+  tick=1833840 | uPC=00 PC=0150 AR=0096 C=1 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=1833841 | uPC=01 PC=0151 AR=0096 C=1 DS=[] RS=[] | FETCH   | PUSH(10) @ 150
+  tick=1833842 | uPC=02 PC=0151 AR=0096 C=1 DS=[10] RS=[] | EXEC    | PUSH: ds_op=3
+  tick=1833843 | uPC=00 PC=0151 AR=0097 C=1 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=1833844 | uPC=01 PC=0152 AR=0097 C=1 DS=[10] RS=[] | FETCH   | STORE(8388607) @ 151
+  tick=1833845 | uPC=05 PC=0152 AR=7fffff C=1 DS=[10] RS=[] | EXEC    | STORE: ar_sel=2
+  tick=1833846 | uPC=06 PC=0152 AR=7fffff C=1 DS=[] RS=[] | EXEC    | STORE: ds_op=2
+  tick=1833847 | uPC=00 PC=0152 AR=0098 C=1 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=1833848 | uPC=01 PC=0153 AR=0098 C=1 DS=[] RS=[] | FETCH   | HALT(0) @ 152
+  tick=1833849 | EXEC    | HALT: HALT
+  tick=1833849 | STOP    | HALT
   ============================================================
   stop: HALT
   output_buffer: [57, 48, 54, 54, 48, 57, 10]
-  ticks: 1305512  instructions: 528337
+  ticks: 1833849  instructions: 528337
   data memory dump (addr: value):
     [  153] = 0
     [  154] = 0

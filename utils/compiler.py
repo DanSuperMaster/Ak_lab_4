@@ -35,18 +35,18 @@ class Compiler:
             self.next_addr += 1
         return self.variables[name]
 
-    def _data_arg(self, data_offset):
+    def data_arg(self, data_offset):
         return -(data_offset + 1)
 
     def emit_load_var(self, name):
         data_off = self.variables[name]
-        pos = self.emit(Opcode.LOAD, self._data_arg(data_off))
+        pos = self.emit(Opcode.LOAD, self.data_arg(data_off))
         self._pending.append(("__data__", pos))
         return pos
 
     def emit_store_var(self, name):
         data_off = self.variables[name]
-        pos = self.emit(Opcode.STORE, self._data_arg(data_off))
+        pos = self.emit(Opcode.STORE, self.data_arg(data_off))
         self._pending.append(("__data__", pos))
         return pos
 
@@ -70,10 +70,14 @@ class Compiler:
             if isinstance(expr, list) and len(expr) >= 1 and str(expr[0]).upper() == "DEFUN":
                 self._compile_defun(expr)
             else:
-                self.compile_expr(expr)
+                self.compile_stmt(expr)
 
         self.emit(Opcode.HALT)
         return self.code
+
+    def compile_stmt(self, expr):
+        self.compile_expr(expr)
+        self.emit(Opcode.POP)
 
     def compile_expr(self, expr):
         if isinstance(expr, int):
@@ -98,11 +102,12 @@ class Compiler:
             raise Exception(f"Invalid expression: {expr}")
 
         if len(expr) == 0:
+            self.emit(Opcode.PUSH, 0)
             return
 
         if len(expr) == 2 and expr[0] == '__string__':
             offset = self.alloc_string(expr[1])
-            pos = self.emit(Opcode.PUSH, self._data_arg(offset))
+            pos = self.emit(Opcode.PUSH, self.data_arg(offset))
             self._pending.append(("__data__", pos))
             return
 
@@ -161,11 +166,13 @@ class Compiler:
             value = expr[2]
             self.alloc_var(name)
             self.compile_expr(value)
+            self.emit(Opcode.DUP)
             self.emit_store_var(name)
             return
 
         if op == 'WRITE':
             self.compile_expr(expr[1])
+            self.emit(Opcode.DUP)
             self.emit(Opcode.STORE, OUT_PORT)
             return
 
@@ -183,13 +190,18 @@ class Compiler:
             for elem in expr[1:]:
                 self.data_section.append(int(elem))
             self.data_section.append(0)
-            pos = self.emit(Opcode.PUSH, self._data_arg(offset))
+            pos = self.emit(Opcode.PUSH, self.data_arg(offset))
             self._pending.append(("__data__", pos))
             return
 
         if op == 'PROGN':
-            for subexpr in expr[1:]:
-                self.compile_expr(subexpr)
+            body = expr[1:]
+            if not body:
+                self.emit(Opcode.PUSH, 0)  # (progn) -> NIL
+                return
+            for subexpr in body[:-1]:
+                self.compile_stmt(subexpr)
+            self.compile_expr(body[-1])  # значение PROGN = последнее выражение
             return
 
         if op == 'IF':
@@ -220,10 +232,12 @@ class Compiler:
         if op == 'WHILE':
             condition = expr[1]
             body = expr[2]
+            self.emit(Opcode.PUSH, 0)
             loop_start = len(self.code)
             self.compile_expr(condition)
             jz_pos = len(self.code)
             self.emit(Opcode.JZ, None)
+            self.emit(Opcode.POP)
             self.compile_expr(body)
             self.emit(Opcode.JMP, loop_start)
             loop_end = len(self.code)
@@ -253,6 +267,7 @@ class Compiler:
                 next_clause = len(self.code)
                 self.code[jz_pos] = (Opcode.JZ, next_clause)
 
+            self.emit(Opcode.PUSH, 0)
             end_addr = len(self.code)
 
             for pos in end_jumps:
@@ -317,7 +332,6 @@ class Compiler:
             self.emit(Opcode.RS_POP)
             self.emit_store_var(local)
 
-        # эпилог: восстанавливаем параметры
         for param in params:
             self.emit(Opcode.RS_POP)
             self.emit_store_var(param)

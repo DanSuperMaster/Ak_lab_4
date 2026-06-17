@@ -36,7 +36,6 @@ class Opcode(IntEnum):
 
     DUP = 0x50
     POP = 0x51
-    SWAP = 0x52
 
     HALT = 0xFF
 
@@ -53,9 +52,7 @@ class ArSel(IntEnum):
     NONE = 0
     PC = 1
     ARG = 2
-    A = 3
-    B = 4
-    DS = 5
+    DS = 3
 
 
 class DsOp(IntEnum):
@@ -65,7 +62,6 @@ class DsOp(IntEnum):
     PUSH_ARG = 3
     DUP = 4
     POP = 5
-    SWAP = 6
     PUSH_RS = 7
 
 
@@ -73,14 +69,6 @@ class RsOp(IntEnum):
     NONE = 0
     PUSH_PC = 1
     PUSH_DS = 2
-
-
-class RegOp(IntEnum):
-    NONE = 0
-    A_ARG = 1
-    A_INC = 2
-    B_ARG = 3
-    B_INC = 4
 
 
 class PcOp(IntEnum):
@@ -110,10 +98,9 @@ _FIELDS = {
     "ar_sel": (13, 0x7),
     "ds_op": (16, 0x7),
     "rs_op": (19, 0x3),
-    "reg_op": (21, 0x7),
-    "pc_op": (26, 0x3),
-    "fetch": (28, 0x1),
-    "halt": (29, 0x1),
+    "pc_op": (21, 0x3),
+    "fetch": (23, 0x1),
+    "halt": (24, 0x1),
 }
 
 
@@ -158,7 +145,8 @@ def _build_microcode() -> tuple[list[int], dict[int, int]]:
     a = _MicroAsm()
 
     a.label("FETCH")
-    a.emit(fetch=1, cond=Cond.DISPATCH)
+    a.emit(ar_sel=ArSel.PC, cond=Cond.SEQ)      # такт 1: AR <- PC (защёлка адреса)
+    a.emit(fetch=1, cond=Cond.DISPATCH)         # такт 2: IR <- mem[AR], PC <- PC+1
 
     end = {"cond": Cond.NEXT, "target": "FETCH"}
 
@@ -211,9 +199,6 @@ def _build_microcode() -> tuple[list[int], dict[int, int]]:
 
     a.op(Opcode.POP)
     a.emit(ds_op=DsOp.POP, **end)
-
-    a.op(Opcode.SWAP)
-    a.emit(ds_op=DsOp.SWAP, **end)
 
     a.op(Opcode.HALT)
     a.emit(halt=1)

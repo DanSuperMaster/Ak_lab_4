@@ -30,7 +30,10 @@ def write_binary(code: list[tuple], data_section: list[int], path: str) -> None:
         f.write(struct.pack(">I", len(data_section)))
         for instr in code:
             opcode = instr[0]
-            arg = instr[1] if len(instr) > 1 else 0
+            if len(instr) > 1:
+                arg = instr[1]
+            else:
+                arg = 0
             if isinstance(opcode, str):
                 op_int = OPCODE_BY_NAME[opcode]
             else:
