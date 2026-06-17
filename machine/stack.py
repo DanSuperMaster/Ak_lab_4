@@ -21,6 +21,16 @@ class Stack:
             raise IndexError(f"{self._name}: недостаточно элементов")
         return self._data[-1 - depth]
 
+    def set_top(self, value: int) -> None:
+        if not self._data:
+            raise IndexError(f"{self._name}: пуст")
+        self._data[-1] = value
+
+    def set_nos(self, value: int) -> None:
+        if len(self._data) < 2:
+            raise IndexError(f"{self._name}: нет NOS")
+        self._data[-2] = value
+
     def __len__(self) -> int:
         return len(self._data)
 
