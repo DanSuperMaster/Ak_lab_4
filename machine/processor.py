@@ -55,8 +55,6 @@ class Processor:
         return "".join(chr(c & 0xFF) for c in self.dp.output_buffer)
 
     def append_final_dump(self) -> None:
-        """Дописать в журнал финальное состояние (как INFO-блок у эталонной модели):
-        причина останова, буфер вывода списком байт, число тактов и дамп памяти данных."""
         j = self.cu.journal
         j.append("=" * 60)
         j.append(f"stop: {self.cu.stop_reason or 'завершено'}")

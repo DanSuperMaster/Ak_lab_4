@@ -5,7 +5,7 @@ from machine.datapath import DataPath
 from common import (
     MAX_TICKS, StopSignal,
     ROM, OPCODE_TO_UADDR, decode_u,
-    Cond, ArSel, DsOp, RsOp, PcOp, AluOp,
+    Cond, ArSel, AluOp, TosSel, SpDelta, PcSel,
 )
 from utils.isa import decode_instruction, OPCODE_NAMES
 
@@ -47,7 +47,6 @@ class ControlUnit:
         opcode, arg = decode_instruction(struct.pack(">I", raw & 0xFFFFFFFF))
         dp.ir_opcode = opcode
         dp.ir_arg = arg
-        dp.pc = dp.pc + 1
         self.instr_count += 1
         mn = OPCODE_NAMES.get(opcode, f"0x{opcode:02X}")
         self.log_msg("FETCH", f"{mn}({arg}) @ {addr}")
@@ -55,67 +54,84 @@ class ControlUnit:
     def exec_word(self, m: dict) -> int:
         dp = self.dp
         upc = self.upc
+        ds = dp.data_stack
+        rs = dp.return_stack
         mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
 
-        if m["fetch"]:
+        old_tos = ds.peek(0) if len(ds) >= 1 else 0
+        old_nos = ds.peek(1) if len(ds) >= 2 else 0
+        old_rs_top = rs.peek(0) if len(rs) >= 1 else 0
+        old_pc = dp.pc
+
+        if m["ir_we"]:
             self.do_fetch()
             mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
 
         ar_sel = m["ar_sel"]
         if ar_sel == ArSel.PC:
-            dp.ar = dp.pc
+            dp.ar = old_pc
         elif ar_sel == ArSel.ARG:
             dp.ar = dp.ir_arg
         elif ar_sel == ArSel.DS:
-            dp.ar = dp.data_stack.peek()
-
-        ds_op = m["ds_op"]
-        if ds_op == DsOp.PUSH_MEM:
-            dp.data_stack.push(dp.mem_read(dp.ar))
-        elif ds_op == DsOp.POP_MEM:
-            dp.mem_write(dp.ar, dp.data_stack.pop())
-        elif ds_op == DsOp.PUSH_ARG:
-            dp.data_stack.push(dp.ir_arg)
-        elif ds_op == DsOp.DUP:
-            dp.data_stack.push(dp.data_stack.peek())
-        elif ds_op == DsOp.POP:
-            dp.data_stack.pop()
-        elif ds_op == DsOp.PUSH_RS:
-            dp.data_stack.push(dp.return_stack.pop())
+            dp.ar = old_tos
 
         alu_op = m["alu_op"]
+        alu_out = 0
         if alu_op == AluOp.TEST_ZERO:
-            v = dp.data_stack.pop()
-            dp.alu.test_zero(v)
+            dp.alu.test_zero(old_tos)
         elif alu_op != AluOp.NONE:
-            right = dp.data_stack.pop()
-            left = dp.data_stack.pop()
-            r = dp.alu.binop(alu_op, left, right)
-            dp.data_stack.push(r)
+            alu_out = dp.alu.binop(alu_op, old_nos, old_tos)
 
-        rs_op = m["rs_op"]
-        if rs_op == RsOp.PUSH_PC:
-            dp.return_stack.push(dp.pc)
-        elif rs_op == RsOp.PUSH_DS:
-            dp.return_stack.push(dp.data_stack.pop())
+        if m["mem_we"]:
+            dp.mem_write(dp.ar, old_tos)
 
-        pc_op = m["pc_op"]
-        if pc_op == PcOp.ARG:
-            dp.pc = dp.ir_arg
-        elif pc_op == PcOp.RS:
-            dp.pc = dp.return_stack.pop()
-        elif pc_op == PcOp.ARG_IF_C:
-            if dp.alu.c == 1:
+        tos_sel = m["tos_sel"]
+        if tos_sel == TosSel.NOS:
+            new_tos = old_nos
+        elif tos_sel == TosSel.MEM:
+            new_tos = dp.mem_read(dp.ar)
+        elif tos_sel == TosSel.ARG:
+            new_tos = dp.ir_arg
+        elif tos_sel == TosSel.ALU:
+            new_tos = alu_out
+        else:
+            new_tos = old_tos
+
+        dsp = m["dsp_delta"]
+        if dsp == SpDelta.INC:
+            ds.push(new_tos)
+        elif dsp == SpDelta.DEC:
+            ds.pop()
+            if len(ds) >= 1:
+                ds.set_top(new_tos)
+        else:
+            if len(ds) >= 1:
+                ds.set_top(new_tos)
+
+        if m["ns_we"]:
+            ds.set_nos(old_tos)
+
+        rsp = m["rsp_delta"]
+        if rsp == SpDelta.INC:
+            rs.push(old_pc)
+        elif rsp == SpDelta.DEC:
+            rs.pop()
+
+        if m["pc_we"]:
+            pc_sel = m["pc_sel"]
+            if pc_sel == PcSel.INC:
+                dp.pc = old_pc + 1
+            elif pc_sel == PcSel.ARG:
                 dp.pc = dp.ir_arg
+            elif pc_sel == PcSel.RS:
+                dp.pc = old_rs_top
 
         if m["halt"]:
             dp.halted = True
             self.log_msg("EXEC", f"{mn}: HALT", with_state=False)
             raise StopSignal("HALT")
 
-        if not m["fetch"]:
-            # Первый такт выборки (AR <- PC) логируем как стадию FETCH, а не EXEC:
-            # IR ещё хранит предыдущую инструкцию, поэтому мнемоник тут нерелевантен.
+        if not m["ir_we"]:
             if m["ar_sel"] == ArSel.PC and m["cond"] == Cond.SEQ:
                 self.log_msg("FETCH", "AR <- PC")
             else:
