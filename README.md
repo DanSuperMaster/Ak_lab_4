@@ -298,7 +298,7 @@ python -m machine.processor <binary.bin> [--input <строка|файл>] [--lo
 узел. Стек данных умеет только push/pop, а *что* грузится в вершину — решают
 мультиплексоры.
 
-{photos/datapath.svg}
+![Схема DataPath](photos/datapath.svg)
 
 ```text
   pc_sel ─►┌─────┐                         ┌──────────── +1 ◄─┐
