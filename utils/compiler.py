@@ -125,6 +125,18 @@ class Compiler:
             self.emit(Opcode.SUB)
             return
 
+        if op == '+C':
+            self.compile_expr(expr[1])
+            self.compile_expr(expr[2])
+            self.emit(Opcode.ADDC)
+            return
+
+        if op == '-B':
+            self.compile_expr(expr[1])
+            self.compile_expr(expr[2])
+            self.emit(Opcode.SUBB)
+            return
+
         if op == '*':
             self.compile_expr(expr[1])
             self.compile_expr(expr[2])
@@ -313,10 +325,15 @@ class Compiler:
         func_addr = len(self.code)
         self.functions[name] = func_addr
 
-        for param in reversed(params):
+
+        for param in params:
             self.alloc_var(param)
+        for i in reversed(range(len(params))):
+            self.alloc_var(f"__ARG{i}__")
+            self.emit_store_var(f"__ARG{i}__")
+        for i, param in enumerate(params):
             self.emit_load_var(param)
-            self.emit(Opcode.RS_PUSH)
+            self.emit_load_var(f"__ARG{i}__")
             self.emit_store_var(param)
 
         locals_ = []
@@ -324,16 +341,15 @@ class Compiler:
         for local in locals_:
             self.alloc_var(local)
             self.emit_load_var(local)
-            self.emit(Opcode.RS_PUSH)
 
         self.compile_expr(body)
 
-        for local in reversed(locals_):
-            self.emit(Opcode.RS_POP)
-            self.emit_store_var(local)
 
-        for param in params:
-            self.emit(Opcode.RS_POP)
+        for local in reversed(locals_):
+            self.emit(Opcode.SWAP)
+            self.emit_store_var(local)
+        for param in reversed(params):
+            self.emit(Opcode.SWAP)
             self.emit_store_var(param)
 
         self.emit(Opcode.RET)

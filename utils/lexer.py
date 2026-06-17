@@ -61,6 +61,12 @@ class Lexer:
             else:
                 break
 
+        if result.startswith("__"):
+            raise Exception(
+                f"Идентификатор '{result}' начинается с '__' — этот префикс "
+                f"зарезервирован под служебные переменные компилятора"
+            )
+
         return result
 
     def is_identifier_char(self, char):
