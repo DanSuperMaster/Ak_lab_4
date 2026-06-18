@@ -14,26 +14,19 @@ def to_s32(bits: int) -> int:
 
 
 class ALU:
-    def __init__(self) -> None:
-        self.c: int = 0
-
-    def binop(self, op: AluOp, left: int, right: int) -> int:
+    def binop(self, op: AluOp, left: int, right: int, carry_in: int = 0) -> tuple[int, int]:
         if op == AluOp.ADD:
             total = to_u32(left) + to_u32(right)
-            self.c = total >> 32
-            return to_s32(total)
+            return to_s32(total), total >> 32
         if op == AluOp.ADDC:
-            total = to_u32(left) + to_u32(right) + self.c
-            self.c = total >> 32
-            return to_s32(total)
+            total = to_u32(left) + to_u32(right) + carry_in
+            return to_s32(total), total >> 32
         if op == AluOp.SUB:
             diff = to_u32(left) - to_u32(right)
-            self.c = 1 if diff < 0 else 0
-            return to_s32(diff)
+            return to_s32(diff), 1 if diff < 0 else 0
         if op == AluOp.SUBB:
-            diff = to_u32(left) - to_u32(right) - self.c
-            self.c = 1 if diff < 0 else 0
-            return to_s32(diff)
+            diff = to_u32(left) - to_u32(right) - carry_in
+            return to_s32(diff), 1 if diff < 0 else 0
 
         if op == AluOp.MUL:
             r = left * right
@@ -53,7 +46,4 @@ class ALU:
             r = 1 if left > right else 0
         else:
             raise ValueError(f"ALU: неизвестная binop {op}")
-        return r
-
-    def test_zero(self, value: int) -> None:
-        self.c = 1 if value == 0 else 0
+        return r, 0
