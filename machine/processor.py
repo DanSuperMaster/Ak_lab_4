@@ -8,10 +8,7 @@ from machine.datapath import DataPath
 from common import ROM
 
 try:
-    from utils.isa import (
-        IN_PORT, OUT_PORT, Opcode, OPCODE_NAMES,
-        decode_instruction, encode_instruction, read_binary,
-    )
+    from utils.isa import encode_instruction, read_binary
 except ImportError:
     print("isa file not exist")
 
@@ -82,8 +79,6 @@ class Processor:
         print("\n=== Статистика ===")
         print(f"Тактов:       {self.cu.tick}")
         print(f"Инструкций:   {self.cu.instr_count}")
-        if self.cu.instr_count:
-            print(f"CPI:          {self.cu.tick / self.cu.instr_count:.2f}")
         print(f"Вывод:        {self.get_output_str()!r}")
 
 
