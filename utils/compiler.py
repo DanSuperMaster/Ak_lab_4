@@ -1,6 +1,7 @@
 import argparse
 
-from utils.isa import Opcode, write_binary, dump_text, IN_PORT, OUT_PORT
+from common import IN_PORT, OUT_PORT
+from utils.isa import Opcode, write_binary, dump_text
 from utils.lexer import Lexer, Parser
 
 
@@ -10,7 +11,6 @@ class Compiler:
         self.variables = {}
         self.next_addr = 0
         self.data_section = []
-        self.string_pool = {}
         self.functions = {}
         self._pending = []
         self.label_counter = 0
@@ -51,13 +51,10 @@ class Compiler:
         return pos
 
     def alloc_string(self, s):
-        if s in self.string_pool:
-            return self.string_pool[s]
         offset = len(self.data_section)
         for ch in s:
             self.data_section.append(ord(ch))
         self.data_section.append(0)
-        self.string_pool[s] = offset
         return offset
 
     def compile(self, program):
