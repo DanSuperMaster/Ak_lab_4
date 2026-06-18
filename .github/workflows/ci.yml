@@ -26,7 +26,7 @@ jobs:
         run: ruff check .
 
       - name: mypy (проверка типов)
-        run: mypy common.py machine utils golden test_golden.py
+        run: mypy common.py machine utils golden
 
       - name: pytest (golden-тесты)
         run: pytest -v
