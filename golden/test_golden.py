@@ -3,7 +3,7 @@ import pytest
 from utils.lexer import Lexer, Parser
 from utils.compiler import Compiler
 from machine.processor import Processor
-from golden.gen_golden import build_memory
+from gen_golden import build_memory
 
 
 def _unescape(raw: str) -> str:

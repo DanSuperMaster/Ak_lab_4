@@ -105,7 +105,7 @@ def main():
         f"log: |\n{indent(log)}\n"
     )
 
-    out_path = os.path.join("golden", f"{args.name}.yml")
+    out_path = os.path.join("", f"{args.name}.yml")
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(yml)
     print(f"golden: {out_path}  (вывод: {out_str!r}, тактов: {cpu.cu.tick})")

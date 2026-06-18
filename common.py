@@ -129,7 +129,7 @@ def decode_u(word: int) -> dict:
             for name, (shift, mask) in FIELDS.items()}
 
 
-class _MicroAsm:
+class MicroAsm:
     def __init__(self) -> None:
         self.words: list[tuple] = []
         self.labels: dict[str, int] = {}
@@ -153,8 +153,8 @@ class _MicroAsm:
         return rom, dict(self.op_start)
 
 
-def _build_microcode() -> tuple[list[int], dict[int, int]]:
-    a = _MicroAsm()
+def build_microcode() -> tuple[list[int], dict[int, int]]:
+    a = MicroAsm()
 
     a.label("FETCH")
     a.emit(ar_sel=ArSel.PC, ar_latch=1, cond=Cond.SEQ)
@@ -226,4 +226,4 @@ def _build_microcode() -> tuple[list[int], dict[int, int]]:
     return a.assemble()
 
 
-ROM, OPCODE_TO_UADDR = _build_microcode()
+ROM, OPCODE_TO_UADDR = build_microcode()
