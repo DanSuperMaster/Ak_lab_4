@@ -1,5 +1,5 @@
 import struct
-from common import IN_PORT, OUT_PORT, Opcode
+from common import Opcode
 
 WORD_SIZE = 32
 INSTRUCTION_SIZE = 4
