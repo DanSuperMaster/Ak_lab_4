@@ -2,7 +2,7 @@
   (IF (= PNN 0)
       (WRITE 48)
       (PROGN
-        (SETQ PND (* 1000000 1000))
+        (SETQ PND (* (* 1000 1000) 1000))
         (SETQ PNS 0)
         (WHILE (> PND 0)
           (PROGN
@@ -15,15 +15,18 @@
                 (PROGN))
             (SETQ PND (/ PND 10)))))))
 
-(SETQ N 100)
-(SETQ I 1)
-(SETQ SUM 0)
-(SETQ SUMSQ 0)
-(WHILE (< I (+ N 1))
-  (PROGN
-    (SETQ SUM (+ SUM I))
-    (SETQ SUMSQ (+ SUMSQ (* I I)))
-    (SETQ I (+ I 1))))
+(SETQ A0 -1)
+(SETQ A1 10)
+(SETQ A2 7)
 
-(PRINT-NUM (- (* SUM SUM) SUMSQ))
-(WRITE 10)
+(SETQ B0 5)
+(SETQ B1 20)
+(SETQ B2 0)
+
+(SETQ R0 (+ A0 B0))
+(SETQ R1 (+C A1 B1))
+(SETQ R2 (+C A2 B2))
+
+(PRINT-NUM R2) (WRITE 32)
+(PRINT-NUM R1) (WRITE 32)
+(PRINT-NUM R0) (WRITE 10)

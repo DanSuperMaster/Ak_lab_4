@@ -1,281 +1,190 @@
-# golden-тест: double_precision
 source: |
-  (SETQ E9 (* (* 1000 1000) 1000))
-  (SETQ E8 (* 10000 10000))
+  (DEFUN PRINT-NUM (PNN)
+    (IF (= PNN 0)
+        (WRITE 48)
+        (PROGN
+          (SETQ PND (* (* 1000 1000) 1000))
+          (SETQ PNS 0)
+          (WHILE (> PND 0)
+            (PROGN
+              (SETQ PNG (/ PNN PND))
+              (IF (> (+ PNG PNS) 0)
+                  (PROGN
+                    (SETQ PNS 1)
+                    (WRITE (+ PNG 48))
+                    (SETQ PNN (- PNN (* PNG PND))))
+                  (PROGN))
+              (SETQ PND (/ PND 10)))))))
 
-  (SETQ A0 (- E9 1))
-  (SETQ A1 (- E9 1))
-  (SETQ A2 0)
+  (SETQ A0 -1)
+  (SETQ A1 10)
+  (SETQ A2 7)
 
-  (SETQ B0 2)
-  (SETQ B1 0)
+  (SETQ B0 5)
+  (SETQ B1 20)
   (SETQ B2 0)
 
-  (SETQ R0 0)
-  (SETQ R1 0)
-  (SETQ R2 0)
+  (SETQ R0 (+ A0 B0))
+  (SETQ R1 (+C A1 B1))
+  (SETQ R2 (+C A2 B2))
 
-  (DEFUN ADD64 ()
-    (PROGN
-      (SETQ R0 (+ A0 B0))
-      (SETQ R1 (+ A1 B1))
-      (SETQ R2 (+ A2 B2))
-      (IF (< R0 E9)
-          (PROGN)
-          (PROGN
-            (SETQ R0 (- R0 E9))
-            (SETQ R1 (+ R1 1))))
-      (IF (< R1 E9)
-          (PROGN)
-          (PROGN
-            (SETQ R1 (- R1 E9))
-            (SETQ R2 (+ R2 1))))))
-
-  (DEFUN PNP (N PAD)
-    (IF (= N 0)
-        (IF (= PAD 1)
-            (PROGN
-              (WRITE 48) (WRITE 48) (WRITE 48) (WRITE 48) (WRITE 48)
-              (WRITE 48) (WRITE 48) (WRITE 48) (WRITE 48))
-            (WRITE 48))
-        (PROGN
-          (SETQ DIV E8)
-          (SETQ STARTED 0)
-          (WHILE (> DIV 0)
-            (PROGN
-              (SETQ DIGIT (/ N DIV))
-              (IF (> (+ (+ DIGIT STARTED) PAD) 0)
-                  (PROGN
-                    (SETQ STARTED 1)
-                    (WRITE (+ DIGIT 48))
-                    (SETQ N (- N (* DIGIT DIV))))
-                  (PROGN))
-              (SETQ DIV (/ DIV 10)))))))
-
-  (DEFUN PRINT64 ()
-    (PROGN
-      (IF (> R2 0)
-          (PROGN
-            (PNP R2 0)
-            (PNP R1 1)
-            (PNP R0 1))
-          (IF (> R1 0)
-              (PROGN
-                (PNP R1 0)
-                (PNP R0 1))
-              (PNP R0 0)))
-      (WRITE 10)))
-
-  (ADD64)
-  (PRINT64)
+  (PRINT-NUM R2) (WRITE 32)
+  (PRINT-NUM R1) (WRITE 32)
+  (PRINT-NUM R0) (WRITE 10)
 
 input: ''
 
 translator_output: |
-  instructions: 199
-  data words: 16
+  instructions: 145
+  data words: 14
 
 machine_code: |
   === Instruction memory ===
-  0000 - 010003E8 - PUSH 1000
-  0004 - 010003E8 - PUSH 1000
-  0008 - 12000000 - MUL
-  0012 - 010003E8 - PUSH 1000
-  0016 - 12000000 - MUL
-  0020 - 030000C7 - STORE 199
-  0024 - 01002710 - PUSH 10000
-  0028 - 01002710 - PUSH 10000
-  0032 - 12000000 - MUL
-  0036 - 030000C8 - STORE 200
-  0040 - 020000C7 - LOAD 199
-  0044 - 01000001 - PUSH 1
-  0048 - 11000000 - SUB
-  0052 - 030000C9 - STORE 201
-  0056 - 020000C7 - LOAD 199
-  0060 - 01000001 - PUSH 1
-  0064 - 11000000 - SUB
-  0068 - 030000CA - STORE 202
-  0072 - 01000000 - PUSH
-  0076 - 030000CB - STORE 203
-  0080 - 01000002 - PUSH 2
-  0084 - 030000CC - STORE 204
-  0088 - 01000000 - PUSH
-  0092 - 030000CD - STORE 205
+  0000 - 30000051 - JMP 81
+  0004 - 03000092 - STORE 146
+  0008 - 02000091 - LOAD 145
+  0012 - 02000092 - LOAD 146
+  0016 - 03000091 - STORE 145
+  0020 - 02000093 - LOAD 147
+  0024 - 02000094 - LOAD 148
+  0028 - 02000095 - LOAD 149
+  0032 - 02000091 - LOAD 145
+  0036 - 01000000 - PUSH
+  0040 - 20000000 - EQ
+  0044 - 31000010 - JZ 16
+  0048 - 01000030 - PUSH 48
+  0052 - 50000000 - DUP
+  0056 - 037FFFFF - STORE 8388607
+  0060 - 30000048 - JMP 72
+  0064 - 010003E8 - PUSH 1000
+  0068 - 010003E8 - PUSH 1000
+  0072 - 12000000 - MUL
+  0076 - 010003E8 - PUSH 1000
+  0080 - 12000000 - MUL
+  0084 - 50000000 - DUP
+  0088 - 03000093 - STORE 147
+  0092 - 51000000 - POP
   0096 - 01000000 - PUSH
-  0100 - 030000CE - STORE 206
-  0104 - 01000000 - PUSH
-  0108 - 030000CF - STORE 207
+  0100 - 50000000 - DUP
+  0104 - 03000094 - STORE 148
+  0108 - 51000000 - POP
   0112 - 01000000 - PUSH
-  0116 - 030000D0 - STORE 208
+  0116 - 02000093 - LOAD 147
   0120 - 01000000 - PUSH
-  0124 - 030000D1 - STORE 209
-  0128 - 30000048 - JMP 72
-  0132 - 020000C9 - LOAD 201
-  0136 - 020000CC - LOAD 204
-  0140 - 10000000 - ADD
-  0144 - 030000CF - STORE 207
-  0148 - 020000CA - LOAD 202
-  0152 - 020000CD - LOAD 205
-  0156 - 10000000 - ADD
-  0160 - 030000D0 - STORE 208
-  0164 - 020000CB - LOAD 203
-  0168 - 020000CE - LOAD 206
-  0172 - 10000000 - ADD
-  0176 - 030000D1 - STORE 209
-  0180 - 020000CF - LOAD 207
-  0184 - 020000C7 - LOAD 199
-  0188 - 21000000 - LT
-  0192 - 31000032 - JZ 50
-  0196 - 3000003A - JMP 58
-  0200 - 020000CF - LOAD 207
-  0204 - 020000C7 - LOAD 199
-  0208 - 11000000 - SUB
-  0212 - 030000CF - STORE 207
-  0216 - 020000D0 - LOAD 208
-  0220 - 01000001 - PUSH 1
-  0224 - 10000000 - ADD
-  0228 - 030000D0 - STORE 208
-  0232 - 020000D0 - LOAD 208
-  0236 - 020000C7 - LOAD 199
-  0240 - 21000000 - LT
-  0244 - 3100003F - JZ 63
-  0248 - 30000047 - JMP 71
-  0252 - 020000D0 - LOAD 208
-  0256 - 020000C7 - LOAD 199
-  0260 - 11000000 - SUB
-  0264 - 030000D0 - STORE 208
-  0268 - 020000D1 - LOAD 209
-  0272 - 01000001 - PUSH 1
-  0276 - 10000000 - ADD
-  0280 - 030000D1 - STORE 209
-  0284 - 33000000 - RET
-  0288 - 300000A4 - JMP 164
-  0292 - 020000D2 - LOAD 210
-  0296 - 34000000 - RS_PUSH
-  0300 - 030000D2 - STORE 210
-  0304 - 020000D3 - LOAD 211
-  0308 - 34000000 - RS_PUSH
-  0312 - 030000D3 - STORE 211
-  0316 - 020000D4 - LOAD 212
-  0320 - 34000000 - RS_PUSH
-  0324 - 020000D5 - LOAD 213
-  0328 - 34000000 - RS_PUSH
-  0332 - 020000D6 - LOAD 214
-  0336 - 34000000 - RS_PUSH
-  0340 - 020000D3 - LOAD 211
-  0344 - 01000000 - PUSH
-  0348 - 20000000 - EQ
-  0352 - 31000073 - JZ 115
-  0356 - 020000D2 - LOAD 210
-  0360 - 01000001 - PUSH 1
-  0364 - 20000000 - EQ
-  0368 - 31000070 - JZ 112
-  0372 - 01000030 - PUSH 48
-  0376 - 037FFFFF - STORE 8388607
-  0380 - 01000030 - PUSH 48
-  0384 - 037FFFFF - STORE 8388607
-  0388 - 01000030 - PUSH 48
-  0392 - 037FFFFF - STORE 8388607
-  0396 - 01000030 - PUSH 48
-  0400 - 037FFFFF - STORE 8388607
-  0404 - 01000030 - PUSH 48
-  0408 - 037FFFFF - STORE 8388607
-  0412 - 01000030 - PUSH 48
-  0416 - 037FFFFF - STORE 8388607
-  0420 - 01000030 - PUSH 48
-  0424 - 037FFFFF - STORE 8388607
-  0428 - 01000030 - PUSH 48
-  0432 - 037FFFFF - STORE 8388607
-  0436 - 01000030 - PUSH 48
-  0440 - 037FFFFF - STORE 8388607
-  0444 - 30000072 - JMP 114
-  0448 - 01000030 - PUSH 48
-  0452 - 037FFFFF - STORE 8388607
-  0456 - 30000099 - JMP 153
-  0460 - 020000C8 - LOAD 200
-  0464 - 030000D4 - STORE 212
-  0468 - 01000000 - PUSH
-  0472 - 030000D5 - STORE 213
-  0476 - 020000D4 - LOAD 212
-  0480 - 01000000 - PUSH
-  0484 - 22000000 - GT
-  0488 - 31000099 - JZ 153
-  0492 - 020000D3 - LOAD 211
-  0496 - 020000D4 - LOAD 212
-  0500 - 13000000 - DIV
-  0504 - 030000D6 - STORE 214
-  0508 - 020000D6 - LOAD 214
-  0512 - 020000D5 - LOAD 213
-  0516 - 10000000 - ADD
-  0520 - 020000D2 - LOAD 210
-  0524 - 10000000 - ADD
-  0528 - 01000000 - PUSH
-  0532 - 22000000 - GT
-  0536 - 31000094 - JZ 148
-  0540 - 01000001 - PUSH 1
-  0544 - 030000D5 - STORE 213
-  0548 - 020000D6 - LOAD 214
-  0552 - 01000030 - PUSH 48
-  0556 - 10000000 - ADD
-  0560 - 037FFFFF - STORE 8388607
-  0564 - 020000D3 - LOAD 211
-  0568 - 020000D6 - LOAD 214
-  0572 - 020000D4 - LOAD 212
-  0576 - 12000000 - MUL
-  0580 - 11000000 - SUB
-  0584 - 030000D3 - STORE 211
-  0588 - 30000094 - JMP 148
-  0592 - 020000D4 - LOAD 212
-  0596 - 0100000A - PUSH 10
-  0600 - 13000000 - DIV
-  0604 - 030000D4 - STORE 212
-  0608 - 30000077 - JMP 119
-  0612 - 35000000 - RS_POP
-  0616 - 030000D6 - STORE 214
-  0620 - 35000000 - RS_POP
-  0624 - 030000D5 - STORE 213
-  0628 - 35000000 - RS_POP
-  0632 - 030000D4 - STORE 212
-  0636 - 35000000 - RS_POP
-  0640 - 030000D3 - STORE 211
-  0644 - 35000000 - RS_POP
-  0648 - 030000D2 - STORE 210
-  0652 - 33000000 - RET
-  0656 - 300000C4 - JMP 196
-  0660 - 020000D1 - LOAD 209
-  0664 - 01000000 - PUSH
-  0668 - 22000000 - GT
-  0672 - 310000B3 - JZ 179
-  0676 - 020000D1 - LOAD 209
-  0680 - 01000000 - PUSH
-  0684 - 32000049 - CALL 73
-  0688 - 020000D0 - LOAD 208
-  0692 - 01000001 - PUSH 1
-  0696 - 32000049 - CALL 73
-  0700 - 020000CF - LOAD 207
-  0704 - 01000001 - PUSH 1
-  0708 - 32000049 - CALL 73
-  0712 - 300000C1 - JMP 193
-  0716 - 020000D0 - LOAD 208
-  0720 - 01000000 - PUSH
-  0724 - 22000000 - GT
-  0728 - 310000BE - JZ 190
-  0732 - 020000D0 - LOAD 208
-  0736 - 01000000 - PUSH
-  0740 - 32000049 - CALL 73
-  0744 - 020000CF - LOAD 207
-  0748 - 01000001 - PUSH 1
-  0752 - 32000049 - CALL 73
-  0756 - 300000C1 - JMP 193
-  0760 - 020000CF - LOAD 207
-  0764 - 01000000 - PUSH
-  0768 - 32000049 - CALL 73
-  0772 - 0100000A - PUSH 10
-  0776 - 037FFFFF - STORE 8388607
-  0780 - 33000000 - RET
-  0784 - 32000021 - CALL 33
-  0788 - 320000A5 - CALL 165
-  0792 - FF000000 - HALT
+  0124 - 22000000 - GT
+  0128 - 31000048 - JZ 72
+  0132 - 51000000 - POP
+  0136 - 02000091 - LOAD 145
+  0140 - 02000093 - LOAD 147
+  0144 - 13000000 - DIV
+  0148 - 50000000 - DUP
+  0152 - 03000095 - STORE 149
+  0156 - 51000000 - POP
+  0160 - 02000095 - LOAD 149
+  0164 - 02000094 - LOAD 148
+  0168 - 10000000 - ADD
+  0172 - 01000000 - PUSH
+  0176 - 22000000 - GT
+  0180 - 31000040 - JZ 64
+  0184 - 01000001 - PUSH 1
+  0188 - 50000000 - DUP
+  0192 - 03000094 - STORE 148
+  0196 - 51000000 - POP
+  0200 - 02000095 - LOAD 149
+  0204 - 01000030 - PUSH 48
+  0208 - 10000000 - ADD
+  0212 - 50000000 - DUP
+  0216 - 037FFFFF - STORE 8388607
+  0220 - 51000000 - POP
+  0224 - 02000091 - LOAD 145
+  0228 - 02000095 - LOAD 149
+  0232 - 02000093 - LOAD 147
+  0236 - 12000000 - MUL
+  0240 - 11000000 - SUB
+  0244 - 50000000 - DUP
+  0248 - 03000091 - STORE 145
+  0252 - 30000041 - JMP 65
+  0256 - 01000000 - PUSH
+  0260 - 51000000 - POP
+  0264 - 02000093 - LOAD 147
+  0268 - 0100000A - PUSH 10
+  0272 - 13000000 - DIV
+  0276 - 50000000 - DUP
+  0280 - 03000093 - STORE 147
+  0284 - 3000001D - JMP 29
+  0288 - 52000000 - SWAP
+  0292 - 03000095 - STORE 149
+  0296 - 52000000 - SWAP
+  0300 - 03000094 - STORE 148
+  0304 - 52000000 - SWAP
+  0308 - 03000093 - STORE 147
+  0312 - 52000000 - SWAP
+  0316 - 03000091 - STORE 145
+  0320 - 33000000 - RET
+  0324 - 01FFFFFF - PUSH -1
+  0328 - 50000000 - DUP
+  0332 - 03000096 - STORE 150
+  0336 - 51000000 - POP
+  0340 - 0100000A - PUSH 10
+  0344 - 50000000 - DUP
+  0348 - 03000097 - STORE 151
+  0352 - 51000000 - POP
+  0356 - 01000007 - PUSH 7
+  0360 - 50000000 - DUP
+  0364 - 03000098 - STORE 152
+  0368 - 51000000 - POP
+  0372 - 01000005 - PUSH 5
+  0376 - 50000000 - DUP
+  0380 - 03000099 - STORE 153
+  0384 - 51000000 - POP
+  0388 - 01000014 - PUSH 20
+  0392 - 50000000 - DUP
+  0396 - 0300009A - STORE 154
+  0400 - 51000000 - POP
+  0404 - 01000000 - PUSH
+  0408 - 50000000 - DUP
+  0412 - 0300009B - STORE 155
+  0416 - 51000000 - POP
+  0420 - 02000096 - LOAD 150
+  0424 - 02000099 - LOAD 153
+  0428 - 10000000 - ADD
+  0432 - 50000000 - DUP
+  0436 - 0300009C - STORE 156
+  0440 - 51000000 - POP
+  0444 - 02000097 - LOAD 151
+  0448 - 0200009A - LOAD 154
+  0452 - 15000000 - ADDC
+  0456 - 50000000 - DUP
+  0460 - 0300009D - STORE 157
+  0464 - 51000000 - POP
+  0468 - 02000098 - LOAD 152
+  0472 - 0200009B - LOAD 155
+  0476 - 15000000 - ADDC
+  0480 - 50000000 - DUP
+  0484 - 0300009E - STORE 158
+  0488 - 51000000 - POP
+  0492 - 0200009E - LOAD 158
+  0496 - 32000001 - CALL 1
+  0500 - 51000000 - POP
+  0504 - 01000020 - PUSH 32
+  0508 - 50000000 - DUP
+  0512 - 037FFFFF - STORE 8388607
+  0516 - 51000000 - POP
+  0520 - 0200009D - LOAD 157
+  0524 - 32000001 - CALL 1
+  0528 - 51000000 - POP
+  0532 - 01000020 - PUSH 32
+  0536 - 50000000 - DUP
+  0540 - 037FFFFF - STORE 8388607
+  0544 - 51000000 - POP
+  0548 - 0200009C - LOAD 156
+  0552 - 32000001 - CALL 1
+  0556 - 51000000 - POP
+  0560 - 0100000A - PUSH 10
+  0564 - 50000000 - DUP
+  0568 - 037FFFFF - STORE 8388607
+  0572 - 51000000 - POP
+  0576 - FF000000 - HALT
 
   === Data memory ===
   0000 - 0
@@ -292,78 +201,76 @@ machine_code: |
   0044 - 0
   0048 - 0
   0052 - 0
-  0056 - 0
-  0060 - 0
 
 machine_output: |
-  1000000000000000001
+  7 31 4
 
-output: [49, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49, 10]
-ticks: 2543
+output: [55, 32, 51, 49, 32, 52, 10]
+ticks: 3385
 
 log: |
-  tick=     1 | uPC=00 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=     2 | uPC=01 PC=0001 AR=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(1000) @ 0
-  tick=     3 | uPC=02 PC=0001 AR=0000 C=0 DS=[1000] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=     4 | uPC=00 PC=0001 AR=0001 C=0 DS=[1000] RS=[] | FETCH   | AR <- PC
-  tick=     5 | uPC=01 PC=0002 AR=0001 C=0 DS=[1000] RS=[] | FETCH   | PUSH(1000) @ 1
-  tick=     6 | uPC=02 PC=0002 AR=0001 C=0 DS=[1000, 1000] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=     7 | uPC=00 PC=0002 AR=0002 C=0 DS=[1000, 1000] RS=[] | FETCH   | AR <- PC
-  tick=     8 | uPC=01 PC=0003 AR=0002 C=0 DS=[1000, 1000] RS=[] | FETCH   | MUL(0) @ 2
-  tick=     9 | uPC=11 PC=0003 AR=0002 C=0 DS=[1000000] RS=[] | EXEC    | MUL: alu_op=3
-  tick=    10 | uPC=00 PC=0003 AR=0003 C=0 DS=[1000000] RS=[] | FETCH   | AR <- PC
-  tick=    11 | uPC=01 PC=0004 AR=0003 C=0 DS=[1000000] RS=[] | FETCH   | PUSH(1000) @ 3
-  tick=    12 | uPC=02 PC=0004 AR=0003 C=0 DS=[1000000, 1000] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=    13 | uPC=00 PC=0004 AR=0004 C=0 DS=[1000000, 1000] RS=[] | FETCH   | AR <- PC
-  tick=    14 | uPC=01 PC=0005 AR=0004 C=0 DS=[1000000, 1000] RS=[] | FETCH   | MUL(0) @ 4
-  tick=    15 | uPC=11 PC=0005 AR=0004 C=0 DS=[1000000000] RS=[] | EXEC    | MUL: alu_op=3
-  tick=    16 | uPC=00 PC=0005 AR=0005 C=0 DS=[1000000000] RS=[] | FETCH   | AR <- PC
-  tick=    17 | uPC=01 PC=0006 AR=0005 C=0 DS=[1000000000] RS=[] | FETCH   | STORE(199) @ 5
-  tick=    18 | uPC=05 PC=0006 AR=00c7 C=0 DS=[1000000000] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=    19 | uPC=06 PC=0006 AR=00c7 C=0 DS=[] RS=[] | EXEC    | STORE: ds_op=2
-  tick=    20 | uPC=00 PC=0006 AR=0006 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=    21 | uPC=01 PC=0007 AR=0006 C=0 DS=[] RS=[] | FETCH   | PUSH(10000) @ 6
-  tick=    22 | uPC=02 PC=0007 AR=0006 C=0 DS=[10000] RS=[] | EXEC    | PUSH: ds_op=3
-  tick=    23 | uPC=00 PC=0007 AR=0007 C=0 DS=[10000] RS=[] | FETCH   | AR <- PC
-  tick=    24 | uPC=01 PC=0008 AR=0007 C=0 DS=[10000] RS=[] | FETCH   | PUSH(10000) @ 7
-    ...  (2501 строк журнала пропущено для краткости)  ...
-  tick=  2526 | uPC=01 PC=0164 AR=00a3 C=1 DS=[] RS=[198, 178] | FETCH   | RET(0) @ 163
-  tick=  2527 | uPC=22 PC=0178 AR=00a3 C=1 DS=[] RS=[198] | EXEC    | RET: pc_op=2
-  tick=  2528 | uPC=00 PC=0178 AR=00b2 C=1 DS=[] RS=[198] | FETCH   | AR <- PC
-  tick=  2529 | uPC=01 PC=0179 AR=00b2 C=1 DS=[] RS=[198] | FETCH   | JMP(193) @ 178
-  tick=  2530 | uPC=17 PC=0193 AR=00b2 C=1 DS=[] RS=[198] | EXEC    | JMP: pc_op=1
-  tick=  2531 | uPC=00 PC=0193 AR=00c1 C=1 DS=[] RS=[198] | FETCH   | AR <- PC
-  tick=  2532 | uPC=01 PC=0194 AR=00c1 C=1 DS=[] RS=[198] | FETCH   | PUSH(10) @ 193
-  tick=  2533 | uPC=02 PC=0194 AR=00c1 C=1 DS=[10] RS=[198] | EXEC    | PUSH: ds_op=3
-  tick=  2534 | uPC=00 PC=0194 AR=00c2 C=1 DS=[10] RS=[198] | FETCH   | AR <- PC
-  tick=  2535 | uPC=01 PC=0195 AR=00c2 C=1 DS=[10] RS=[198] | FETCH   | STORE(8388607) @ 194
-  tick=  2536 | uPC=05 PC=0195 AR=7fffff C=1 DS=[10] RS=[198] | EXEC    | STORE: ar_sel=2
-  tick=  2537 | uPC=06 PC=0195 AR=7fffff C=1 DS=[] RS=[198] | EXEC    | STORE: ds_op=2
-  tick=  2538 | uPC=00 PC=0195 AR=00c3 C=1 DS=[] RS=[198] | FETCH   | AR <- PC
-  tick=  2539 | uPC=01 PC=0196 AR=00c3 C=1 DS=[] RS=[198] | FETCH   | RET(0) @ 195
-  tick=  2540 | uPC=22 PC=0198 AR=00c3 C=1 DS=[] RS=[] | EXEC    | RET: pc_op=2
-  tick=  2541 | uPC=00 PC=0198 AR=00c6 C=1 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=  2542 | uPC=01 PC=0199 AR=00c6 C=1 DS=[] RS=[] | FETCH   | HALT(0) @ 198
-  tick=  2543 | EXEC    | HALT: HALT
-  tick=  2543 | STOP    | HALT
+  tick=     1 | MPC=00 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     2 | MPC=01 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | JMP(81) @ 0
+  tick=     3 | MPC=19 PC=0081 AR=0000 C=0 DS=[] RS=[] | EXEC    | JMP: pc_sel=1 pc_latch=1
+  tick=     4 | MPC=00 PC=0081 AR=0051 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     5 | MPC=01 PC=0081 AR=0051 C=0 DS=[] RS=[] | FETCH   | PUSH(-1) @ 81
+  tick=     6 | MPC=02 PC=0082 AR=0051 C=0 DS=[-1] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=     7 | MPC=00 PC=0082 AR=0052 C=0 DS=[-1] RS=[] | FETCH   | AR <- PC
+  tick=     8 | MPC=01 PC=0082 AR=0052 C=0 DS=[-1] RS=[] | FETCH   | DUP(0) @ 82
+  tick=     9 | MPC=26 PC=0083 AR=0052 C=0 DS=[-1, -1] RS=[] | EXEC    | DUP: dsp_delta=1 ds_latch=1
+  tick=    10 | MPC=00 PC=0083 AR=0053 C=0 DS=[-1, -1] RS=[] | FETCH   | AR <- PC
+  tick=    11 | MPC=01 PC=0083 AR=0053 C=0 DS=[-1, -1] RS=[] | FETCH   | STORE(150) @ 83
+  tick=    12 | MPC=05 PC=0084 AR=0096 C=0 DS=[-1, -1] RS=[] | EXEC    | STORE: ar_sel=1 ar_latch=1
+  tick=    13 | MPC=06 PC=0084 AR=0096 C=0 DS=[-1] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_latch=1
+  tick=    14 | MPC=00 PC=0084 AR=0054 C=0 DS=[-1] RS=[] | FETCH   | AR <- PC
+  tick=    15 | MPC=01 PC=0084 AR=0054 C=0 DS=[-1] RS=[] | FETCH   | POP(0) @ 84
+  tick=    16 | MPC=27 PC=0085 AR=0054 C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=    17 | MPC=00 PC=0085 AR=0055 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=    18 | MPC=01 PC=0085 AR=0055 C=0 DS=[] RS=[] | FETCH   | PUSH(10) @ 85
+  tick=    19 | MPC=02 PC=0086 AR=0055 C=0 DS=[10] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=    20 | MPC=00 PC=0086 AR=0056 C=0 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=    21 | MPC=01 PC=0086 AR=0056 C=0 DS=[10] RS=[] | FETCH   | DUP(0) @ 86
+  tick=    22 | MPC=26 PC=0087 AR=0056 C=0 DS=[10, 10] RS=[] | EXEC    | DUP: dsp_delta=1 ds_latch=1
+  tick=    23 | MPC=00 PC=0087 AR=0057 C=0 DS=[10, 10] RS=[] | FETCH   | AR <- PC
+  tick=    24 | MPC=01 PC=0087 AR=0057 C=0 DS=[10, 10] RS=[] | FETCH   | STORE(151) @ 87
+    ...  (3341 строк журнала пропущено для краткости)  ...
+  tick=  3366 | MPC=25 PC=0139 AR=0050 C=0 DS=[0] RS=[] | EXEC    | RET: rsp_delta=2 pc_sel=2 pc_latch=1
+  tick=  3367 | MPC=00 PC=0139 AR=008b C=0 DS=[0] RS=[] | FETCH   | AR <- PC
+  tick=  3368 | MPC=01 PC=0139 AR=008b C=0 DS=[0] RS=[] | FETCH   | POP(0) @ 139
+  tick=  3369 | MPC=27 PC=0140 AR=008b C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=  3370 | MPC=00 PC=0140 AR=008c C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=  3371 | MPC=01 PC=0140 AR=008c C=0 DS=[] RS=[] | FETCH   | PUSH(10) @ 140
+  tick=  3372 | MPC=02 PC=0141 AR=008c C=0 DS=[10] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=  3373 | MPC=00 PC=0141 AR=008d C=0 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=  3374 | MPC=01 PC=0141 AR=008d C=0 DS=[10] RS=[] | FETCH   | DUP(0) @ 141
+  tick=  3375 | MPC=26 PC=0142 AR=008d C=0 DS=[10, 10] RS=[] | EXEC    | DUP: dsp_delta=1 ds_latch=1
+  tick=  3376 | MPC=00 PC=0142 AR=008e C=0 DS=[10, 10] RS=[] | FETCH   | AR <- PC
+  tick=  3377 | MPC=01 PC=0142 AR=008e C=0 DS=[10, 10] RS=[] | FETCH   | STORE(8388607) @ 142
+  tick=  3378 | MPC=05 PC=0143 AR=7fffff C=0 DS=[10, 10] RS=[] | EXEC    | STORE: ar_sel=1 ar_latch=1
+  tick=  3379 | MPC=06 PC=0143 AR=7fffff C=0 DS=[10] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_latch=1
+  tick=  3380 | MPC=00 PC=0143 AR=008f C=0 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=  3381 | MPC=01 PC=0143 AR=008f C=0 DS=[10] RS=[] | FETCH   | POP(0) @ 143
+  tick=  3382 | MPC=27 PC=0144 AR=008f C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=  3383 | MPC=00 PC=0144 AR=0090 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=  3384 | MPC=01 PC=0144 AR=0090 C=0 DS=[] RS=[] | FETCH   | HALT(0) @ 144
+  tick=  3385 | EXEC    | HALT: HALT
+  tick=  3385 | STOP    | HALT
   ============================================================
   stop: HALT
-  output_buffer: [49, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 49, 10]
-  ticks: 2543  instructions: 721
+  output_buffer: [55, 32, 51, 49, 32, 52, 10]
+  ticks: 3385  instructions: 994
   data memory dump (addr: value):
-    [  199] = 1000000000
-    [  200] = 100000000
-    [  201] = 999999999
-    [  202] = 999999999
-    [  203] = 0
-    [  204] = 2
-    [  205] = 0
-    [  206] = 0
-    [  207] = 1
-    [  208] = 0
-    [  209] = 1
-    [  210] = 0
-    [  211] = 0
-    [  212] = 0
-    [  213] = 0
-    [  214] = 0
+    [  145] = 0
+    [  146] = 4
+    [  147] = 0
+    [  148] = 0
+    [  149] = 0
+    [  150] = -1
+    [  151] = 10
+    [  152] = 7
+    [  153] = 5
+    [  154] = 20
+    [  155] = 0
+    [  156] = 4
+    [  157] = 31
+    [  158] = 7

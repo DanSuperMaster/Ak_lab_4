@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ak-lab4"
+version = "0.1.0"
+description = "Lisp -> стековая машина: транслятор и потактовая модель"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.2,<8",
+    "pytest-golden>=0.2.2",
+    "ruff>=0.5",
+    "mypy>=1.8",
+]
+
+[tool.setuptools]
+py-modules = ["common"]
+packages = ["machine", "utils", "golden"]
+
+[tool.pytest.ini_options]
+enable_assertion_pass_hook = true
+testpaths = ["."]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+exclude = ['^\.venv/', '^build/']

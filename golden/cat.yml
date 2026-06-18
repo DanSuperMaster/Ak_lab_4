@@ -31,65 +31,65 @@ output: [102, 111, 111, 32, 98, 97, 114, 10, 98, 97, 122, 10]
 ticks: 305
 
 log: |
-  tick=     1 | uPC=00 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=     2 | uPC=01 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(0) @ 0
-  tick=     3 | uPC=02 PC=0001 AR=0000 C=0 DS=[0] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_we=1
-  tick=     4 | uPC=00 PC=0001 AR=0001 C=0 DS=[0] RS=[] | FETCH   | AR <- PC
-  tick=     5 | uPC=01 PC=0001 AR=0001 C=0 DS=[0] RS=[] | FETCH   | PUSH(1) @ 1
-  tick=     6 | uPC=02 PC=0002 AR=0001 C=0 DS=[0, 1] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_we=1
-  tick=     7 | uPC=00 PC=0002 AR=0002 C=0 DS=[0, 1] RS=[] | FETCH   | AR <- PC
-  tick=     8 | uPC=01 PC=0002 AR=0002 C=0 DS=[0, 1] RS=[] | FETCH   | JZ(8) @ 2
-  tick=     9 | uPC=20 PC=0003 AR=0002 C=0 DS=[0] RS=[] | EXEC    | JZ: alu_op=9 tos_sel=1 dsp_delta=2
-  tick=    10 | uPC=21 PC=0003 AR=0002 C=0 DS=[0] RS=[] | EXEC    | JZ: (нет сигналов)
-  tick=    11 | uPC=00 PC=0003 AR=0003 C=0 DS=[0] RS=[] | FETCH   | AR <- PC
-  tick=    12 | uPC=01 PC=0003 AR=0003 C=0 DS=[0] RS=[] | FETCH   | POP(0) @ 3
-  tick=    13 | uPC=27 PC=0004 AR=0003 C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
-  tick=    14 | uPC=00 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=    15 | uPC=01 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
-  tick=    16 | uPC=03 PC=0005 AR=7ffffe C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
-  tick=    17 | uPC=04 PC=0005 AR=7ffffe C=0 DS=[102] RS=[] | EXEC    | LOAD: tos_sel=2 dsp_delta=1 ds_we=1
-  tick=    18 | uPC=00 PC=0005 AR=0005 C=0 DS=[102] RS=[] | FETCH   | AR <- PC
-  tick=    19 | uPC=01 PC=0005 AR=0005 C=0 DS=[102] RS=[] | FETCH   | DUP(0) @ 5
-  tick=    20 | uPC=26 PC=0006 AR=0005 C=0 DS=[102, 102] RS=[] | EXEC    | DUP: dsp_delta=1 ds_we=1
-  tick=    21 | uPC=00 PC=0006 AR=0006 C=0 DS=[102, 102] RS=[] | FETCH   | AR <- PC
-  tick=    22 | uPC=01 PC=0006 AR=0006 C=0 DS=[102, 102] RS=[] | FETCH   | STORE(8388607) @ 6
-  tick=    23 | uPC=05 PC=0007 AR=7fffff C=0 DS=[102, 102] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=    24 | uPC=06 PC=0007 AR=7fffff C=0 DS=[102] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_we=1
+  tick=     1 | MPC=00 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=     2 | MPC=01 PC=0000 AR=0000 C=0 DS=[] RS=[] | FETCH   | PUSH(0) @ 0
+  tick=     3 | MPC=02 PC=0001 AR=0000 C=0 DS=[0] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=     4 | MPC=00 PC=0001 AR=0001 C=0 DS=[0] RS=[] | FETCH   | AR <- PC
+  tick=     5 | MPC=01 PC=0001 AR=0001 C=0 DS=[0] RS=[] | FETCH   | PUSH(1) @ 1
+  tick=     6 | MPC=02 PC=0002 AR=0001 C=0 DS=[0, 1] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=     7 | MPC=00 PC=0002 AR=0002 C=0 DS=[0, 1] RS=[] | FETCH   | AR <- PC
+  tick=     8 | MPC=01 PC=0002 AR=0002 C=0 DS=[0, 1] RS=[] | FETCH   | JZ(8) @ 2
+  tick=     9 | MPC=20 PC=0003 AR=0002 C=1 DS=[0] RS=[] | EXEC    | JZ: alu_op=1 tos_sel=1 dsp_delta=2 c_latch=1 alu_sel=1
+  tick=    10 | MPC=21 PC=0003 AR=0002 C=1 DS=[0] RS=[] | EXEC    | JZ: (нет сигналов)
+  tick=    11 | MPC=00 PC=0003 AR=0003 C=1 DS=[0] RS=[] | FETCH   | AR <- PC
+  tick=    12 | MPC=01 PC=0003 AR=0003 C=1 DS=[0] RS=[] | FETCH   | POP(0) @ 3
+  tick=    13 | MPC=27 PC=0004 AR=0003 C=1 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=    14 | MPC=00 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=    15 | MPC=01 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
+  tick=    16 | MPC=03 PC=0005 AR=7ffffe C=1 DS=[] RS=[] | EXEC    | LOAD: ar_sel=1 ar_latch=1
+  tick=    17 | MPC=04 PC=0005 AR=7ffffe C=1 DS=[102] RS=[] | EXEC    | LOAD: tos_sel=2 dsp_delta=1 ds_latch=1
+  tick=    18 | MPC=00 PC=0005 AR=0005 C=1 DS=[102] RS=[] | FETCH   | AR <- PC
+  tick=    19 | MPC=01 PC=0005 AR=0005 C=1 DS=[102] RS=[] | FETCH   | DUP(0) @ 5
+  tick=    20 | MPC=26 PC=0006 AR=0005 C=1 DS=[102, 102] RS=[] | EXEC    | DUP: dsp_delta=1 ds_latch=1
+  tick=    21 | MPC=00 PC=0006 AR=0006 C=1 DS=[102, 102] RS=[] | FETCH   | AR <- PC
+  tick=    22 | MPC=01 PC=0006 AR=0006 C=1 DS=[102, 102] RS=[] | FETCH   | STORE(8388607) @ 6
+  tick=    23 | MPC=05 PC=0007 AR=7fffff C=1 DS=[102, 102] RS=[] | EXEC    | STORE: ar_sel=1 ar_latch=1
+  tick=    24 | MPC=06 PC=0007 AR=7fffff C=1 DS=[102] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_latch=1
     ...  (246 строк журнала пропущено для краткости)  ...
-  tick=   271 | uPC=00 PC=0002 AR=0002 C=0 DS=[122, 1] RS=[] | FETCH   | AR <- PC
-  tick=   272 | uPC=01 PC=0002 AR=0002 C=0 DS=[122, 1] RS=[] | FETCH   | JZ(8) @ 2
-  tick=   273 | uPC=20 PC=0003 AR=0002 C=0 DS=[122] RS=[] | EXEC    | JZ: alu_op=9 tos_sel=1 dsp_delta=2
-  tick=   274 | uPC=21 PC=0003 AR=0002 C=0 DS=[122] RS=[] | EXEC    | JZ: (нет сигналов)
-  tick=   275 | uPC=00 PC=0003 AR=0003 C=0 DS=[122] RS=[] | FETCH   | AR <- PC
-  tick=   276 | uPC=01 PC=0003 AR=0003 C=0 DS=[122] RS=[] | FETCH   | POP(0) @ 3
-  tick=   277 | uPC=27 PC=0004 AR=0003 C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
-  tick=   278 | uPC=00 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=   279 | uPC=01 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
-  tick=   280 | uPC=03 PC=0005 AR=7ffffe C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
-  tick=   281 | uPC=04 PC=0005 AR=7ffffe C=0 DS=[10] RS=[] | EXEC    | LOAD: tos_sel=2 dsp_delta=1 ds_we=1
-  tick=   282 | uPC=00 PC=0005 AR=0005 C=0 DS=[10] RS=[] | FETCH   | AR <- PC
-  tick=   283 | uPC=01 PC=0005 AR=0005 C=0 DS=[10] RS=[] | FETCH   | DUP(0) @ 5
-  tick=   284 | uPC=26 PC=0006 AR=0005 C=0 DS=[10, 10] RS=[] | EXEC    | DUP: dsp_delta=1 ds_we=1
-  tick=   285 | uPC=00 PC=0006 AR=0006 C=0 DS=[10, 10] RS=[] | FETCH   | AR <- PC
-  tick=   286 | uPC=01 PC=0006 AR=0006 C=0 DS=[10, 10] RS=[] | FETCH   | STORE(8388607) @ 6
-  tick=   287 | uPC=05 PC=0007 AR=7fffff C=0 DS=[10, 10] RS=[] | EXEC    | STORE: ar_sel=2
-  tick=   288 | uPC=06 PC=0007 AR=7fffff C=0 DS=[10] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_we=1
-  tick=   289 | uPC=00 PC=0007 AR=0007 C=0 DS=[10] RS=[] | FETCH   | AR <- PC
-  tick=   290 | uPC=01 PC=0007 AR=0007 C=0 DS=[10] RS=[] | FETCH   | JMP(1) @ 7
-  tick=   291 | uPC=19 PC=0001 AR=0007 C=0 DS=[10] RS=[] | EXEC    | JMP: pc_sel=1 pc_we=1
-  tick=   292 | uPC=00 PC=0001 AR=0001 C=0 DS=[10] RS=[] | FETCH   | AR <- PC
-  tick=   293 | uPC=01 PC=0001 AR=0001 C=0 DS=[10] RS=[] | FETCH   | PUSH(1) @ 1
-  tick=   294 | uPC=02 PC=0002 AR=0001 C=0 DS=[10, 1] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_we=1
-  tick=   295 | uPC=00 PC=0002 AR=0002 C=0 DS=[10, 1] RS=[] | FETCH   | AR <- PC
-  tick=   296 | uPC=01 PC=0002 AR=0002 C=0 DS=[10, 1] RS=[] | FETCH   | JZ(8) @ 2
-  tick=   297 | uPC=20 PC=0003 AR=0002 C=0 DS=[10] RS=[] | EXEC    | JZ: alu_op=9 tos_sel=1 dsp_delta=2
-  tick=   298 | uPC=21 PC=0003 AR=0002 C=0 DS=[10] RS=[] | EXEC    | JZ: (нет сигналов)
-  tick=   299 | uPC=00 PC=0003 AR=0003 C=0 DS=[10] RS=[] | FETCH   | AR <- PC
-  tick=   300 | uPC=01 PC=0003 AR=0003 C=0 DS=[10] RS=[] | FETCH   | POP(0) @ 3
-  tick=   301 | uPC=27 PC=0004 AR=0003 C=0 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
-  tick=   302 | uPC=00 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | AR <- PC
-  tick=   303 | uPC=01 PC=0004 AR=0004 C=0 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
-  tick=   304 | uPC=03 PC=0005 AR=7ffffe C=0 DS=[] RS=[] | EXEC    | LOAD: ar_sel=2
+  tick=   271 | MPC=00 PC=0002 AR=0002 C=1 DS=[122, 1] RS=[] | FETCH   | AR <- PC
+  tick=   272 | MPC=01 PC=0002 AR=0002 C=1 DS=[122, 1] RS=[] | FETCH   | JZ(8) @ 2
+  tick=   273 | MPC=20 PC=0003 AR=0002 C=1 DS=[122] RS=[] | EXEC    | JZ: alu_op=1 tos_sel=1 dsp_delta=2 c_latch=1 alu_sel=1
+  tick=   274 | MPC=21 PC=0003 AR=0002 C=1 DS=[122] RS=[] | EXEC    | JZ: (нет сигналов)
+  tick=   275 | MPC=00 PC=0003 AR=0003 C=1 DS=[122] RS=[] | FETCH   | AR <- PC
+  tick=   276 | MPC=01 PC=0003 AR=0003 C=1 DS=[122] RS=[] | FETCH   | POP(0) @ 3
+  tick=   277 | MPC=27 PC=0004 AR=0003 C=1 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=   278 | MPC=00 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=   279 | MPC=01 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
+  tick=   280 | MPC=03 PC=0005 AR=7ffffe C=1 DS=[] RS=[] | EXEC    | LOAD: ar_sel=1 ar_latch=1
+  tick=   281 | MPC=04 PC=0005 AR=7ffffe C=1 DS=[10] RS=[] | EXEC    | LOAD: tos_sel=2 dsp_delta=1 ds_latch=1
+  tick=   282 | MPC=00 PC=0005 AR=0005 C=1 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=   283 | MPC=01 PC=0005 AR=0005 C=1 DS=[10] RS=[] | FETCH   | DUP(0) @ 5
+  tick=   284 | MPC=26 PC=0006 AR=0005 C=1 DS=[10, 10] RS=[] | EXEC    | DUP: dsp_delta=1 ds_latch=1
+  tick=   285 | MPC=00 PC=0006 AR=0006 C=1 DS=[10, 10] RS=[] | FETCH   | AR <- PC
+  tick=   286 | MPC=01 PC=0006 AR=0006 C=1 DS=[10, 10] RS=[] | FETCH   | STORE(8388607) @ 6
+  tick=   287 | MPC=05 PC=0007 AR=7fffff C=1 DS=[10, 10] RS=[] | EXEC    | STORE: ar_sel=1 ar_latch=1
+  tick=   288 | MPC=06 PC=0007 AR=7fffff C=1 DS=[10] RS=[] | EXEC    | STORE: tos_sel=1 dsp_delta=2 mem_latch=1
+  tick=   289 | MPC=00 PC=0007 AR=0007 C=1 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=   290 | MPC=01 PC=0007 AR=0007 C=1 DS=[10] RS=[] | FETCH   | JMP(1) @ 7
+  tick=   291 | MPC=19 PC=0001 AR=0007 C=1 DS=[10] RS=[] | EXEC    | JMP: pc_sel=1 pc_latch=1
+  tick=   292 | MPC=00 PC=0001 AR=0001 C=1 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=   293 | MPC=01 PC=0001 AR=0001 C=1 DS=[10] RS=[] | FETCH   | PUSH(1) @ 1
+  tick=   294 | MPC=02 PC=0002 AR=0001 C=1 DS=[10, 1] RS=[] | EXEC    | PUSH: tos_sel=3 dsp_delta=1 ds_latch=1
+  tick=   295 | MPC=00 PC=0002 AR=0002 C=1 DS=[10, 1] RS=[] | FETCH   | AR <- PC
+  tick=   296 | MPC=01 PC=0002 AR=0002 C=1 DS=[10, 1] RS=[] | FETCH   | JZ(8) @ 2
+  tick=   297 | MPC=20 PC=0003 AR=0002 C=1 DS=[10] RS=[] | EXEC    | JZ: alu_op=1 tos_sel=1 dsp_delta=2 c_latch=1 alu_sel=1
+  tick=   298 | MPC=21 PC=0003 AR=0002 C=1 DS=[10] RS=[] | EXEC    | JZ: (нет сигналов)
+  tick=   299 | MPC=00 PC=0003 AR=0003 C=1 DS=[10] RS=[] | FETCH   | AR <- PC
+  tick=   300 | MPC=01 PC=0003 AR=0003 C=1 DS=[10] RS=[] | FETCH   | POP(0) @ 3
+  tick=   301 | MPC=27 PC=0004 AR=0003 C=1 DS=[] RS=[] | EXEC    | POP: tos_sel=1 dsp_delta=2
+  tick=   302 | MPC=00 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | AR <- PC
+  tick=   303 | MPC=01 PC=0004 AR=0004 C=1 DS=[] RS=[] | FETCH   | LOAD(8388606) @ 4
+  tick=   304 | MPC=03 PC=0005 AR=7ffffe C=1 DS=[] RS=[] | EXEC    | LOAD: ar_sel=1 ar_latch=1
   tick=   305 | STOP    | Конец входного буфера
   ============================================================
   stop: Конец входного буфера

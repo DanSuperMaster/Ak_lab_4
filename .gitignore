@@ -1,1 +1,18 @@
 .idea
+.venv/
+__pycache__/
+*.py[cod]
+
+# build / install artifacts
+build/
+dist/
+*.egg-info/
+
+# tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# прочее
+*.bin
+output.bin
