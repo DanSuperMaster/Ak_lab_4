@@ -1,4 +1,5 @@
 from enum import IntEnum
+from typing import TypedDict
 
 IN_PORT = 0x7FFFFE
 OUT_PORT = 0x7FFFFF
@@ -50,25 +51,27 @@ class Cond(IntEnum):
 
 
 class ArSel(IntEnum):
-    NONE = 0
-    PC = 1
-    ARG = 2
-    DS = 3
+    PC = 0
+    ARG = 1
+    DS = 2
 
 
 class AluOp(IntEnum):
-    NONE = 0
-    ADD = 1
-    SUB = 2
-    MUL = 3
-    DIV = 4
-    MOD = 5
-    EQ = 6
-    LT = 7
-    GT = 8
-    TEST_ZERO = 9
-    ADDC = 10
-    SUBB = 11
+    ADD = 0
+    SUB = 1
+    MUL = 2
+    DIV = 3
+    MOD = 4
+    EQ = 5
+    LT = 6
+    GT = 7
+    ADDC = 8
+    SUBB = 9
+
+
+class AluSel(IntEnum):
+    NOS = 0
+    ZERO = 1
 
 
 class TosSel(IntEnum):
@@ -98,15 +101,18 @@ FIELDS = {
     "ar_sel": (13, 0x3),
     "tos_sel": (15, 0x7),
     "dsp_delta": (18, 0x3),
-    "ds_we": (20, 0x1),
-    "rsp_delta": (22, 0x3),
-    "rs_we": (24, 0x1),
-    "pc_sel": (25, 0x3),
-    "pc_we": (27, 0x1),
-    "mem_we": (28, 0x1),
-    "ir_we": (29, 0x1),
-    "halt": (30, 0x1),
-    "ns_we": (31, 0x1),
+    "ds_latch": (20, 0x1),
+    "rsp_delta": (21, 0x3),
+    "rs_latch": (23, 0x1),
+    "pc_sel": (24, 0x3),
+    "pc_latch": (26, 0x1),
+    "mem_latch": (27, 0x1),
+    "ir_latch": (28, 0x1),
+    "halt": (29, 0x1),
+    "ns_latch": (30, 0x1),
+    "c_latch": (31, 0x1),
+    "ar_latch": (32, 0x1),
+    "alu_sel": (33, 0x1),
 }
 
 
@@ -151,26 +157,31 @@ def _build_microcode() -> tuple[list[int], dict[int, int]]:
     a = _MicroAsm()
 
     a.label("FETCH")
-    a.emit(ar_sel=ArSel.PC, cond=Cond.SEQ)
-    a.emit(ir_we=1, pc_sel=PcSel.INC, pc_we=1, cond=Cond.DISPATCH)
+    a.emit(ar_sel=ArSel.PC, ar_latch=1, cond=Cond.SEQ)
+    a.emit(ir_latch=1, pc_sel=PcSel.INC, pc_latch=1, cond=Cond.DISPATCH)
 
-    end = {"cond": Cond.NEXT, "target": "FETCH"}
+    class End(TypedDict):
+        cond: Cond
+        target: str
+
+    end: End = {"cond": Cond.NEXT, "target": "FETCH"}
 
     a.op(Opcode.PUSH)
-    a.emit(tos_sel=TosSel.ARG, dsp_delta=SpDelta.INC, ds_we=1, **end)
+    a.emit(tos_sel=TosSel.ARG, dsp_delta=SpDelta.INC, ds_latch=1, **end)
 
     a.op(Opcode.LOAD)
-    a.emit(ar_sel=ArSel.ARG, cond=Cond.SEQ)
-    a.emit(tos_sel=TosSel.MEM, dsp_delta=SpDelta.INC, ds_we=1, **end)
+    a.emit(ar_sel=ArSel.ARG, ar_latch=1, cond=Cond.SEQ)
+    a.emit(tos_sel=TosSel.MEM, dsp_delta=SpDelta.INC, ds_latch=1, **end)
 
     a.op(Opcode.STORE)
-    a.emit(ar_sel=ArSel.ARG, cond=Cond.SEQ)
-    a.emit(mem_we=1, tos_sel=TosSel.NOS, dsp_delta=SpDelta.DEC, **end)
+    a.emit(ar_sel=ArSel.ARG, ar_latch=1, cond=Cond.SEQ)
+    a.emit(mem_latch=1, tos_sel=TosSel.NOS, dsp_delta=SpDelta.DEC, **end)
 
     a.op(Opcode.LOAD_IND)
-    a.emit(ar_sel=ArSel.DS, cond=Cond.SEQ)
+    a.emit(ar_sel=ArSel.DS, ar_latch=1, cond=Cond.SEQ)
     a.emit(tos_sel=TosSel.MEM, dsp_delta=SpDelta.HOLD, **end)
 
+    carry_ops = {Opcode.ADD, Opcode.SUB, Opcode.ADDC, Opcode.SUBB}
     for opcode, alu in (
             (Opcode.ADD, AluOp.ADD), (Opcode.SUB, AluOp.SUB),
             (Opcode.MUL, AluOp.MUL), (Opcode.DIV, AluOp.DIV),
@@ -179,33 +190,35 @@ def _build_microcode() -> tuple[list[int], dict[int, int]]:
             (Opcode.ADDC, AluOp.ADDC), (Opcode.SUBB, AluOp.SUBB),
     ):
         a.op(opcode)
-        a.emit(alu_op=alu, tos_sel=TosSel.ALU, dsp_delta=SpDelta.DEC, **end)
+        a.emit(alu_op=alu, tos_sel=TosSel.ALU, dsp_delta=SpDelta.DEC,
+               c_latch=1 if opcode in carry_ops else 0, **end)
 
     a.op(Opcode.JMP)
-    a.emit(pc_sel=PcSel.ARG, pc_we=1, **end)
+    a.emit(pc_sel=PcSel.ARG, pc_latch=1, **end)
 
     a.op(Opcode.JZ)
-    a.emit(alu_op=AluOp.TEST_ZERO, tos_sel=TosSel.NOS, dsp_delta=SpDelta.DEC,
-           cond=Cond.IF_C, target="JZ_TAKE")
+
+    a.emit(alu_op=AluOp.SUB, alu_sel=AluSel.ZERO, tos_sel=TosSel.NOS,
+           dsp_delta=SpDelta.DEC, c_latch=1, cond=Cond.IF_NC, target="JZ_TAKE")
     a.emit(**end)
     a.label("JZ_TAKE")
-    a.emit(pc_sel=PcSel.ARG, pc_we=1, **end)
+    a.emit(pc_sel=PcSel.ARG, pc_latch=1, **end)
 
     a.op(Opcode.CALL)
-    a.emit(rsp_delta=SpDelta.INC, rs_we=1, cond=Cond.SEQ)
-    a.emit(pc_sel=PcSel.ARG, pc_we=1, **end)
+    a.emit(rsp_delta=SpDelta.INC, rs_latch=1, cond=Cond.SEQ)
+    a.emit(pc_sel=PcSel.ARG, pc_latch=1, **end)
 
     a.op(Opcode.RET)
-    a.emit(pc_sel=PcSel.RS, pc_we=1, rsp_delta=SpDelta.DEC, **end)
+    a.emit(pc_sel=PcSel.RS, pc_latch=1, rsp_delta=SpDelta.DEC, **end)
 
     a.op(Opcode.DUP)
-    a.emit(tos_sel=TosSel.HOLD, dsp_delta=SpDelta.INC, ds_we=1, **end)
+    a.emit(tos_sel=TosSel.HOLD, dsp_delta=SpDelta.INC, ds_latch=1, **end)
 
     a.op(Opcode.POP)
     a.emit(tos_sel=TosSel.NOS, dsp_delta=SpDelta.DEC, **end)
 
     a.op(Opcode.SWAP)
-    a.emit(tos_sel=TosSel.NOS, ns_we=1, dsp_delta=SpDelta.HOLD, **end)
+    a.emit(tos_sel=TosSel.NOS, ns_latch=1, dsp_delta=SpDelta.HOLD, **end)
 
     a.op(Opcode.HALT)
     a.emit(halt=1)
