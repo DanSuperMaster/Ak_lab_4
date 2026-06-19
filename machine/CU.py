@@ -20,6 +20,7 @@ class ControlUnit:
         self.journal: list[str] = []
         self.max_print_str = max_print_str
         self.stop_reason: str | None = None
+        self.mn = ""
 
     def log_msg(self, stage: str, detail: str, with_state: bool = True) -> None:
         if not self._log:
@@ -37,29 +38,22 @@ class ControlUnit:
             line = f"tick={self.tick:6d} | {stage:7s} | {detail}"
         self.journal.append(line)
 
-    def do_fetch(self) -> None:
-        dp = self.dp
-        addr = dp.ar
-        if addr < 0 or addr >= len(dp.memory):
-            raise IndexError(f"AR={addr} за пределами памяти")
-        raw = dp.memory[addr]
-        opcode, arg = decode_instruction(struct.pack(">I", raw & 0xFFFFFFFF))
-        dp.signal_latch_ir(opcode, arg)
+    def do_fetch(self) -> str:
+        opcode = self.dp.signal_latch_ir()
         self.instr_count += 1
         mn = OPCODE_NAMES.get(opcode, f"0x{opcode:02X}")
-        self.log_msg("FETCH", f"{mn}({arg}) @ {addr}")
+        self.log_msg("FETCH", f"{mn}({self.dp.ir_arg}) @ {self.dp.ar}")
+        return mn
 
     def exec_word(self, m: dict) -> int:
         dp = self.dp
         mpc = self.mpc
-        mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
 
         # Фронт синхросигнала: датапас фиксирует выходы своих регистров.
         dp.start_cycle()
 
         if m["ir_latch"]:
-            self.do_fetch()
-            mn = OPCODE_NAMES.get(dp.ir_opcode, f"0x{dp.ir_opcode:02X}")
+            self.mn = self.do_fetch()
 
         if m["ar_latch"]:
             dp.signal_latch_ar(m["ar_sel"])
@@ -83,14 +77,14 @@ class ControlUnit:
 
         if m["halt"]:
             dp.signal_halt()
-            self.log_msg("EXEC", f"{mn}: HALT", with_state=False)
+            self.log_msg("EXEC", f"{self.mn}: HALT", with_state=False)
             raise StopSignal("HALT")
 
         if not m["ir_latch"]:
             if m["ar_latch"] and m["ar_sel"] == ArSel.PC and m["cond"] == Cond.SEQ:
                 self.log_msg("FETCH", "AR <- PC")
             else:
-                self.log_msg("EXEC", f"{mn}: {self.fmt_signals(m)}")
+                self.log_msg("EXEC", f"{self.mn}: {self.fmt_signals(m)}")
 
         cond = m["cond"]
         if cond == Cond.SEQ:

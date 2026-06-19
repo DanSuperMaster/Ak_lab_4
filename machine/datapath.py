@@ -1,6 +1,9 @@
+import struct
+
 from common import IN_PORT, StopSignal, OUT_PORT, ArSel, PcSel, SpDelta, TosSel, AluOp, AluSel
 from machine.ALU import ALU
 from machine.stack import Stack
+from utils.isa import decode_instruction, OPCODE_NAMES
 
 
 class DataPath:
@@ -61,9 +64,10 @@ class DataPath:
             raise ValueError("Запись в IN_PORT недопустима")
         self.memory[addr] = value
 
-    def signal_latch_ir(self, opcode: int, arg: int) -> None:
-        self.ir_opcode = opcode
-        self.ir_arg = arg
+    def signal_latch_ir(self) -> int:
+        self.ir_opcode, self.ir_arg = decode_instruction(struct.pack(">I", self.mem_read(self.ar) & 0xFFFFFFFF))
+        return self.ir_opcode
+
 
     def signal_latch_ar(self, ar_sel: ArSel) -> None:
         if ar_sel == ArSel.PC:
@@ -83,6 +87,9 @@ class DataPath:
 
     def signal_mem_write(self) -> None:
         self.mem_write(self.ar, self.tos_o)
+
+    def signal_mem_read(self) -> None:
+        self.mem_read(self.ar)
 
     def signal_latch_tos(self, tos_sel: TosSel, dsp_delta: SpDelta) -> None:
         if tos_sel == TosSel.NOS:
