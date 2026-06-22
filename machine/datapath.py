@@ -3,7 +3,7 @@ import struct
 from common import IN_PORT, StopSignal, OUT_PORT, ArSel, PcSel, SpDelta, TosSel, AluOp, AluSel
 from machine.ALU import ALU
 from machine.stack import Stack
-from utils.isa import decode_instruction, OPCODE_NAMES
+from utils.isa import decode_instruction
 
 
 class DataPath:

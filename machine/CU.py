@@ -1,4 +1,3 @@
-import struct
 
 from machine.datapath import DataPath
 from common import (
@@ -6,7 +5,7 @@ from common import (
     ROM, OPCODE_TO_UADDR, decode_u,
     Cond, ArSel,
 )
-from utils.isa import decode_instruction, OPCODE_NAMES
+from utils.isa import OPCODE_NAMES
 
 
 class ControlUnit:
@@ -21,6 +20,7 @@ class ControlUnit:
         self.max_print_str = max_print_str
         self.stop_reason: str | None = None
         self.mn = ""
+        self.opcode = 0
 
     def log_msg(self, stage: str, detail: str, with_state: bool = True) -> None:
         if not self._log:
@@ -39,9 +39,9 @@ class ControlUnit:
         self.journal.append(line)
 
     def do_fetch(self) -> str:
-        opcode = self.dp.signal_latch_ir()
+        self.opcode = self.dp.signal_latch_ir()
         self.instr_count += 1
-        mn = OPCODE_NAMES.get(opcode, f"0x{opcode:02X}")
+        mn = OPCODE_NAMES.get(self.opcode, f"0x{self.opcode:02X}")
         self.log_msg("FETCH", f"{mn}({self.dp.ir_arg}) @ {self.dp.ar}")
         return mn
 
@@ -93,9 +93,9 @@ class ControlUnit:
             return m["next_addr"]
         if cond == Cond.DISPATCH:
             try:
-                return OPCODE_TO_UADDR[dp.ir_opcode]
+                return OPCODE_TO_UADDR[self.opcode]
             except KeyError:
-                raise ValueError(f"Неизвестный опкод: 0x{dp.ir_opcode:02X}")
+                raise ValueError(f"Неизвестный опкод: 0x{self.opcode:02X}")
         if cond == Cond.IF_C:
             return m["next_addr"] if dp.c == 1 else mpc + 1
         if cond == Cond.IF_NC:
